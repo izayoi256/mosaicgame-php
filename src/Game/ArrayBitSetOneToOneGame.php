@@ -121,7 +121,7 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
         }
 
         if (!$this->isLegalMove($move)) {
-            throw CouldNotMakeMoveException::invalidMove($move);
+            throw CouldNotMakeMoveException::illegalMove($move);
         }
 
         $this->handleMove($move, $this->movesMade());

@@ -21,8 +21,8 @@ class CouldNotMakeMoveException extends DomainException
         return new self('The game is already over.');
     }
 
-    public static function invalidMove(Move $move): self
+    public static function illegalMove(Move $move): self
     {
-        return new self(sprintf('Invalid move: %s', $move->toOffset()));
+        return new self(sprintf('Illegal move: %s', $move->toOffset()));
     }
 }
