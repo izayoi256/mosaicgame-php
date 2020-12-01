@@ -20,11 +20,6 @@ use function array_map;
 
 final class ArrayBitSetOneToOneGameTest extends TestCase
 {
-    private function zeroPad(string $string): string
-    {
-        return sprintf('%0140s', $string);
-    }
-
     private function makeMove(Game $game, int ...$moveOffsets): void
     {
         foreach ($moveOffsets as $moveOffset) {
@@ -42,32 +37,32 @@ final class ArrayBitSetOneToOneGameTest extends TestCase
     public function testCreate()
     {
         $game = ArrayBitSetOneToOneGame::create(3);
-        $this->assertSame($this->zeroPad('00000000000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('00000000000000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('00000000000000', $game->firstBoard()->toString());
+        $this->assertSame('00000000000000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
     }
 
     public function testMakeMove()
     {
         $game = ArrayBitSetOneToOneGame::create(3);
-        $this->assertSame($this->zeroPad('00000000000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('00000000000000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('00000000000000', $game->firstBoard()->toString());
+        $this->assertSame('00000000000000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
 
         $this->makeMove($game, 13);
-        $this->assertSame($this->zeroPad('10000000000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('00000000000000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('10000000000000', $game->firstBoard()->toString());
+        $this->assertSame('00000000000000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
 
         $this->makeMove($game, 12);
-        $this->assertSame($this->zeroPad('10000000000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('01000000000000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('10000000000000', $game->firstBoard()->toString());
+        $this->assertSame('01000000000000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
 
         $this->makeMove($game, 8);
-        $this->assertSame($this->zeroPad('10000100000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('01000000000000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('10000100000000', $game->firstBoard()->toString());
+        $this->assertSame('01000000000000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
     }
 
     public function testMakeMoveWithIllegalMove()
@@ -83,9 +78,9 @@ final class ArrayBitSetOneToOneGameTest extends TestCase
     {
         $game = ArrayBitSetOneToOneGame::create(3);
         $this->makeMove($game, 13, 5, 12, 7, 10);
-        $this->assertSame($this->zeroPad('11010000010000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('00000010100000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('11010000010000', $game->firstBoard()->toString());
+        $this->assertSame('00000010100000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
     }
 
     public function testLegalMoves()
@@ -109,9 +104,9 @@ final class ArrayBitSetOneToOneGameTest extends TestCase
         $game = ArrayBitSetOneToOneGame::create(3);
         $this->makeMove($game, 13, 5, 12, 7, 10);
         $game->undo();
-        $this->assertSame($this->zeroPad('11000000000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('00000010100000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('11000000000000', $game->firstBoard()->toString());
+        $this->assertSame('00000010100000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
 
         $this->assertSame([13, 5, 12, 7], $this->movesToOffsets($game->moves()));
         $this->assertSame(4, $game->movesMade());
@@ -136,13 +131,13 @@ final class ArrayBitSetOneToOneGameTest extends TestCase
         $this->makeMove($game, 13, 5, 12, 7, 10);
         $game->undo();
         $game->undo();
-        $this->assertSame($this->zeroPad('11000000000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('00000000100000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('11000000000000', $game->firstBoard()->toString());
+        $this->assertSame('00000000100000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
         $game->redo();
-        $this->assertSame($this->zeroPad('11000000000000'), $game->firstBoard()->toString());
-        $this->assertSame($this->zeroPad('00000010100000'), $game->secondBoard()->toString());
-        $this->assertSame($this->zeroPad('00001000000000'), $game->neutralBoard()->toString());
+        $this->assertSame('11000000000000', $game->firstBoard()->toString());
+        $this->assertSame('00000010100000', $game->secondBoard()->toString());
+        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
 
         $this->assertSame([13, 5, 12, 7], $this->movesToOffsets($game->moves()));
         $this->assertSame(4, $game->movesMade());

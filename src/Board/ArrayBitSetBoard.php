@@ -15,8 +15,8 @@ use MosaicGame\BitSet\BitSet;
 
 final class ArrayBitSetBoard extends BitSetBoard
 {
-    protected static function stringToBitSet(string $string): BitSet
+    protected static function stringToBitSet(int $bitSetSize, string $string): BitSet
     {
-        return ArrayBitSet::fromString(static::BIT_SET_SIZE, $string);
+        return ArrayBitSet::fromString($bitSetSize, $string);
     }
 }

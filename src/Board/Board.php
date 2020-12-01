@@ -43,6 +43,8 @@ interface Board extends Countable
      */
     public function count(): int;
 
+    public function size(): int;
+
     /**
      * Return a horizontally mirrored instance.
      * This method MUST be implemented in a way to keep immutability.

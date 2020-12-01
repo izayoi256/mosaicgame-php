@@ -20,7 +20,6 @@ use function range;
 abstract class BitSetBoard implements Board
 {
     public const MAX_SIZE = 7;
-    public const BIT_SET_SIZE = 140;
     protected const PROMOTE_ZERO = 0b000001;
     protected const PROMOTE_ONE = 0b000010;
     protected const PROMOTE_TWO = 0b000100;
@@ -41,25 +40,25 @@ abstract class BitSetBoard implements Board
         $this->bitSet = self::boardMask($size)->and($bitSet);
     }
 
-    abstract protected static function stringToBitSet(string $string): BitSet;
+    abstract protected static function stringToBitSet(int $size, string $string): BitSet;
 
     public static function fromString(int $size, string $cells): Board
     {
-        return new static($size, static::stringToBitSet($cells));
+        return new static($size, static::stringToBitSet(self::bitSetSize($size), $cells));
     }
 
     public static function emptyBoard(int $size): Board
     {
         static $boards = [];
         return $boards[$size]
-            ?? ($boards[$size] = new static($size, self::zeroBitSet()));
+            ?? ($boards[$size] = new static($size, self::zeroBitSet($size)));
     }
 
     public static function groundBoard(int $size): Board
     {
         static $boards = [];
         return $boards[$size]
-            ?? ($boards[$size] = self::emptyBoard($size)->or(new static($size, self::layerMask($size))));
+            ?? ($boards[$size] = self::emptyBoard($size)->or(new static($size, self::layerMask($size, $size))));
     }
 
     public static function neutralBoard(int $size): Board
@@ -68,7 +67,7 @@ abstract class BitSetBoard implements Board
 
         if (!isset($boads[$size])) {
             if ($size % 2 === 1) {
-                $bitSet = self::oneBitSet();
+                $bitSet = self::oneBitSet($size);
                 for ($i = 1; $i < $size; $i++) {
                     $bitSet = $bitSet->shift($i ** 2);
                 }
@@ -113,26 +112,27 @@ abstract class BitSetBoard implements Board
     {
         /** @var BitSet[] $masks */
         static $masks;
-        if (!isset($masks)) {
-            $masks = [
-                0 => static::stringToBitSet('10000001000000100000010000001000000100000010000000000000000000000000000000000000000010000100001000010000100000000000000000001001001000001'),
-                1 => static::stringToBitSet('10000010000010000010000010000010000000000000000000000000000010001000100010000000000010100'),
-                -1 => static::stringToBitSet('1000001000001000001000001000001000000000000000000000000000001000100010001000000000001010'),
-                2 => static::stringToBitSet('100000010000001000000100000010000001000000100000000000000000000000000000000000000000100001000010000100001000000000000000000010010010000000'),
-                -2 => static::stringToBitSet('1000000100000010000001000000100000010000001000000000000000000000000000000000000000001000010000100001000010000000000000000000100100100000'),
-                3 => static::stringToBitSet('100000100000100000100000100000100000000000000000000000000000100010001000100000000000000000'),
-                -3 => static::stringToBitSet('100000100000100000100000100000100000000000000000000000000000100010001000100000000000000'),
-                4 => static::stringToBitSet('1000000100000010000001000000100000010000001000000000000000000000000000000000000000001000010000100001000010000000000000000000000000000000000'),
-                -4 => static::stringToBitSet('100000010000001000000100000010000001000000100000000000000000000000000000000000000000100001000010000100001000000000000000000000000000000'),
-                5 => static::stringToBitSet('1000001000001000001000001000001000000000000000000000000000000000000000000000000000000000000'),
-                -5 => static::stringToBitSet('10000010000010000010000010000010000000000000000000000000000000000000000000000000000000'),
-                6 => static::stringToBitSet('10000001000000100000010000001000000100000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -6 => static::stringToBitSet('10000001000000100000010000001000000100000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+        if (!isset($masks[$this->size])) {
+            $bitSetSize = self::bitSetSize($this->size);
+            $masks[$this->size] = [
+                0 => static::stringToBitSet($bitSetSize, '10000001000000100000010000001000000100000010000000000000000000000000000000000000000010000100001000010000100000000000000000001001001000001'),
+                1 => static::stringToBitSet($bitSetSize, '10000010000010000010000010000010000000000000000000000000000010001000100010000000000010100'),
+                -1 => static::stringToBitSet($bitSetSize, '1000001000001000001000001000001000000000000000000000000000001000100010001000000000001010'),
+                2 => static::stringToBitSet($bitSetSize, '100000010000001000000100000010000001000000100000000000000000000000000000000000000000100001000010000100001000000000000000000010010010000000'),
+                -2 => static::stringToBitSet($bitSetSize, '1000000100000010000001000000100000010000001000000000000000000000000000000000000000001000010000100001000010000000000000000000100100100000'),
+                3 => static::stringToBitSet($bitSetSize, '100000100000100000100000100000100000000000000000000000000000100010001000100000000000000000'),
+                -3 => static::stringToBitSet($bitSetSize, '100000100000100000100000100000100000000000000000000000000000100010001000100000000000000'),
+                4 => static::stringToBitSet($bitSetSize, '1000000100000010000001000000100000010000001000000000000000000000000000000000000000001000010000100001000010000000000000000000000000000000000'),
+                -4 => static::stringToBitSet($bitSetSize, '100000010000001000000100000010000001000000100000000000000000000000000000000000000000100001000010000100001000000000000000000000000000000'),
+                5 => static::stringToBitSet($bitSetSize, '1000001000001000001000001000001000000000000000000000000000000000000000000000000000000000000'),
+                -5 => static::stringToBitSet($bitSetSize, '10000010000010000010000010000010000000000000000000000000000000000000000000000000000000'),
+                6 => static::stringToBitSet($bitSetSize, '10000001000000100000010000001000000100000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -6 => static::stringToBitSet($bitSetSize, '10000001000000100000010000001000000100000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
             ];
         }
 
-        $bitSet = self::zeroBitSet();
-        foreach ($masks as $amount => $mask) {
+        $bitSet = self::zeroBitSet($this->size);
+        foreach ($masks[$this->size] as $amount => $mask) {
             if ($amount < 0) {
                 $bitSet = $bitSet->or(
                     $mask->and(
@@ -154,36 +154,37 @@ abstract class BitSetBoard implements Board
     {
         /** @var BitSet[] $masks */
         static $masks;
-        if (!isset($masks)) {
-            $masks = [
-                0 => static::stringToBitSet('11111110000000000000000000000000000000000000000000000000000000000000000000111110000000000000000000000000000011100000001'),
-                -2 => static::stringToBitSet('110'),
-                2 => static::stringToBitSet('11000'),
-                -6 => static::stringToBitSet('1111110000000000000000000000000000000000000000000000000000000000011100000'),
-                6 => static::stringToBitSet('1111110000000000000000000000000000000000000000000000000000000000011100000000000'),
-                -12 => static::stringToBitSet('111100000000000000'),
-                -4 => static::stringToBitSet('1111000000000000000000'),
-                4 => static::stringToBitSet('11110000000000000000000000'),
-                12 => static::stringToBitSet('111100000000000000000000000000'),
-                -20 => static::stringToBitSet('11111000000000000000000000000000000'),
-                -10 => static::stringToBitSet('1111100000000000000000000000000000000000'),
-                10 => static::stringToBitSet('11111000000000000000000000000000000000000000000000'),
-                20 => static::stringToBitSet('1111100000000000000000000000000000000000000000000000000'),
-                -30 => static::stringToBitSet('1111110000000000000000000000000000000000000000000000000000000'),
-                -18 => static::stringToBitSet('1111110000000000000000000000000000000000000000000000000000000000000'),
-                18 => static::stringToBitSet('1111110000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                30 => static::stringToBitSet('1111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -42 => static::stringToBitSet('11111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -28 => static::stringToBitSet('111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -14 => static::stringToBitSet('1111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                14 => static::stringToBitSet('111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                28 => static::stringToBitSet('1111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                42 => static::stringToBitSet('11111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+        if (!isset($masks[$this->size])) {
+            $bitSetSize = self::bitSetSize($this->size);
+            $masks[$this->size] = [
+                0 => static::stringToBitSet($bitSetSize, '11111110000000000000000000000000000000000000000000000000000000000000000000111110000000000000000000000000000011100000001'),
+                -2 => static::stringToBitSet($bitSetSize, '110'),
+                2 => static::stringToBitSet($bitSetSize, '11000'),
+                -6 => static::stringToBitSet($bitSetSize, '1111110000000000000000000000000000000000000000000000000000000000011100000'),
+                6 => static::stringToBitSet($bitSetSize, '1111110000000000000000000000000000000000000000000000000000000000011100000000000'),
+                -12 => static::stringToBitSet($bitSetSize, '111100000000000000'),
+                -4 => static::stringToBitSet($bitSetSize, '1111000000000000000000'),
+                4 => static::stringToBitSet($bitSetSize, '11110000000000000000000000'),
+                12 => static::stringToBitSet($bitSetSize, '111100000000000000000000000000'),
+                -20 => static::stringToBitSet($bitSetSize, '11111000000000000000000000000000000'),
+                -10 => static::stringToBitSet($bitSetSize, '1111100000000000000000000000000000000000'),
+                10 => static::stringToBitSet($bitSetSize, '11111000000000000000000000000000000000000000000000'),
+                20 => static::stringToBitSet($bitSetSize, '1111100000000000000000000000000000000000000000000000000'),
+                -30 => static::stringToBitSet($bitSetSize, '1111110000000000000000000000000000000000000000000000000000000'),
+                -18 => static::stringToBitSet($bitSetSize, '1111110000000000000000000000000000000000000000000000000000000000000'),
+                18 => static::stringToBitSet($bitSetSize, '1111110000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                30 => static::stringToBitSet($bitSetSize, '1111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -42 => static::stringToBitSet($bitSetSize, '11111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -28 => static::stringToBitSet($bitSetSize, '111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -14 => static::stringToBitSet($bitSetSize, '1111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                14 => static::stringToBitSet($bitSetSize, '111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                28 => static::stringToBitSet($bitSetSize, '1111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                42 => static::stringToBitSet($bitSetSize, '11111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
             ];
         }
 
-        $bitSet = self::zeroBitSet();
-        foreach ($masks as $amount => $mask) {
+        $bitSet = self::zeroBitSet($this->size);
+        foreach ($masks[$this->size] as $amount => $mask) {
             if ($amount < 0) {
                 $bitSet = $bitSet->or(
                     $mask->and(
@@ -205,52 +206,53 @@ abstract class BitSetBoard implements Board
     {
         /** @var BitSet[] $masks */
         static $masks;
-        if (!isset($masks)) {
-            $masks = [
-                0 => static::stringToBitSet('10000010000010000010000010000010000010000000000010000100001000010000100001000000000100010001000100010000000100100100100000101010001101'),
-                3 => static::stringToBitSet('10000'),
-                -3 => static::stringToBitSet('10'),
-                4 => static::stringToBitSet('1010000000000'),
-                -4 => static::stringToBitSet('101000000'),
-                8 => static::stringToBitSet('100000100000100000100000100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000'),
-                -8 => static::stringToBitSet('1000001000001000001000001000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000'),
-                5 => static::stringToBitSet('1001001000000000000000000000'),
-                -5 => static::stringToBitSet('10010010000000000000000'),
-                10 => static::stringToBitSet('10010000000000000000000000000'),
-                -10 => static::stringToBitSet('1001000000000000000'),
-                15 => static::stringToBitSet('100000000000000000000000000000'),
-                -15 => static::stringToBitSet('100000000000000'),
-                6 => static::stringToBitSet('1000100010001000000000000000000000000000000000000000'),
-                -6 => static::stringToBitSet('1000100010001000000000000000000000000000000000'),
-                12 => static::stringToBitSet('10001000100000000000000000000000000000000000000000000'),
-                -12 => static::stringToBitSet('10001000100000000000000000000000000000000'),
-                18 => static::stringToBitSet('100010000000000000000000000000000000000000000000000000'),
-                -18 => static::stringToBitSet('100010000000000000000000000000000000'),
-                24 => static::stringToBitSet('10000010000010000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000'),
-                -24 => static::stringToBitSet('10000010000010000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000'),
-                7 => static::stringToBitSet('100001000010000100001000000000000000000000000000000000000000000000000000000000000000000'),
-                -7 => static::stringToBitSet('10000100001000010000100000000000000000000000000000000000000000000000000000000000'),
-                14 => static::stringToBitSet('1000010000100001000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -14 => static::stringToBitSet('10000100001000010000000000000000000000000000000000000000000000000000000000'),
-                21 => static::stringToBitSet('10000100001000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -21 => static::stringToBitSet('10000100001000000000000000000000000000000000000000000000000000000000'),
-                28 => static::stringToBitSet('100001000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -28 => static::stringToBitSet('10000100000000000000000000000000000000000000000000000000000000'),
-                35 => static::stringToBitSet('1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -35 => static::stringToBitSet('10000000000000000000000000000000000000000000000000000000'),
-                16 => static::stringToBitSet('1000001000001000001000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -16 => static::stringToBitSet('100000100000100000100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                32 => static::stringToBitSet('100000100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -32 => static::stringToBitSet('1000001000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                40 => static::stringToBitSet('1000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -40 => static::stringToBitSet('100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                48 => static::stringToBitSet('10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
-                -48 => static::stringToBitSet('10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+        if (!isset($masks[$this->size])) {
+            $bitSetSize = self::bitSetSize($this->size);
+            $masks[$this->size] = [
+                0 => static::stringToBitSet($bitSetSize, '10000010000010000010000010000010000010000000000010000100001000010000100001000000000100010001000100010000000100100100100000101010001101'),
+                3 => static::stringToBitSet($bitSetSize, '10000'),
+                -3 => static::stringToBitSet($bitSetSize, '10'),
+                4 => static::stringToBitSet($bitSetSize, '1010000000000'),
+                -4 => static::stringToBitSet($bitSetSize, '101000000'),
+                8 => static::stringToBitSet($bitSetSize, '100000100000100000100000100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000'),
+                -8 => static::stringToBitSet($bitSetSize, '1000001000001000001000001000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000'),
+                5 => static::stringToBitSet($bitSetSize, '1001001000000000000000000000'),
+                -5 => static::stringToBitSet($bitSetSize, '10010010000000000000000'),
+                10 => static::stringToBitSet($bitSetSize, '10010000000000000000000000000'),
+                -10 => static::stringToBitSet($bitSetSize, '1001000000000000000'),
+                15 => static::stringToBitSet($bitSetSize, '100000000000000000000000000000'),
+                -15 => static::stringToBitSet($bitSetSize, '100000000000000'),
+                6 => static::stringToBitSet($bitSetSize, '1000100010001000000000000000000000000000000000000000'),
+                -6 => static::stringToBitSet($bitSetSize, '1000100010001000000000000000000000000000000000'),
+                12 => static::stringToBitSet($bitSetSize, '10001000100000000000000000000000000000000000000000000'),
+                -12 => static::stringToBitSet($bitSetSize, '10001000100000000000000000000000000000000'),
+                18 => static::stringToBitSet($bitSetSize, '100010000000000000000000000000000000000000000000000000'),
+                -18 => static::stringToBitSet($bitSetSize, '100010000000000000000000000000000000'),
+                24 => static::stringToBitSet($bitSetSize, '10000010000010000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000'),
+                -24 => static::stringToBitSet($bitSetSize, '10000010000010000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000'),
+                7 => static::stringToBitSet($bitSetSize, '100001000010000100001000000000000000000000000000000000000000000000000000000000000000000'),
+                -7 => static::stringToBitSet($bitSetSize, '10000100001000010000100000000000000000000000000000000000000000000000000000000000'),
+                14 => static::stringToBitSet($bitSetSize, '1000010000100001000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -14 => static::stringToBitSet($bitSetSize, '10000100001000010000000000000000000000000000000000000000000000000000000000'),
+                21 => static::stringToBitSet($bitSetSize, '10000100001000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -21 => static::stringToBitSet($bitSetSize, '10000100001000000000000000000000000000000000000000000000000000000000'),
+                28 => static::stringToBitSet($bitSetSize, '100001000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -28 => static::stringToBitSet($bitSetSize, '10000100000000000000000000000000000000000000000000000000000000'),
+                35 => static::stringToBitSet($bitSetSize, '1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -35 => static::stringToBitSet($bitSetSize, '10000000000000000000000000000000000000000000000000000000'),
+                16 => static::stringToBitSet($bitSetSize, '1000001000001000001000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -16 => static::stringToBitSet($bitSetSize, '100000100000100000100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                32 => static::stringToBitSet($bitSetSize, '100000100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -32 => static::stringToBitSet($bitSetSize, '1000001000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                40 => static::stringToBitSet($bitSetSize, '1000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -40 => static::stringToBitSet($bitSetSize, '100000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                48 => static::stringToBitSet($bitSetSize, '10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
+                -48 => static::stringToBitSet($bitSetSize, '10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'),
             ];
         }
 
-        $bitSet = self::zeroBitSet();
-        foreach ($masks as $amount => $mask) {
+        $bitSet = self::zeroBitSet($this->size);
+        foreach ($masks[$this->size] as $amount => $mask) {
             if ($amount < 0) {
                 $bitSet = $bitSet->or(
                     $mask->and(
@@ -352,13 +354,13 @@ abstract class BitSetBoard implements Board
 
     private function promote(int $type): self
     {
-        $promotedBitSet = self::zeroBitSet();
+        $promotedBitSet = self::zeroBitSet($this->size);
 
         for ($srcLayerSize = $this->size; $srcLayerSize > 1; $srcLayerSize--) {
             $dstLayerSize = $srcLayerSize - 1;
-            $srcLayerMask = self::layerMask($srcLayerSize);
+            $srcLayerMask = self::layerMask($this->size, $srcLayerSize);
             $srcLayer = $this->bitSet->and($srcLayerMask);
-            $promotedLayer = self::zeroBitSet();
+            $promotedLayer = self::zeroBitSet($this->size);
 
             if ($type & (self::PROMOTE_ZERO | self::PROMOTE_ONE)) {
                 $srcLayer = $srcLayer->flip()->and($srcLayerMask);
@@ -398,7 +400,7 @@ abstract class BitSetBoard implements Board
 
                 static $rowMasks = [];
                 if (!isset($rowMasks[$dstLayerSize][$i])) {
-                    $rowMask = self::zeroBitSet()
+                    $rowMask = self::zeroBitSet($this->size)
                         ->set(...range(0, $dstLayerSize - 1))
                         ->shift(self::layerShift($srcLayerSize))
                         ->shift(($srcLayerSize) * $i);
@@ -415,40 +417,40 @@ abstract class BitSetBoard implements Board
         return new static($this->size, $promotedBitSet);
     }
 
-    private static function zeroBitSet(): BitSet
+    private static function zeroBitSet(int $size): BitSet
     {
-        static $bitSet;
-        return $bitSet ?? ($bitSet = static::stringToBitSet('0'));
+        static $bitSets = [];
+        return $bitSets[$size] ?? ($bitSets[$size] = static::stringToBitSet(self::bitSetSize($size), '0'));
     }
 
-    private static function oneBitSet(): BitSet
+    private static function oneBitSet(int $size): BitSet
     {
-        static $bitSet;
-        return $bitSet ?? ($bitSet = static::stringToBitSet('1'));
+        static $bitSets = [];
+        return $bitSets[$size] ?? ($bitSets[$size] = static::stringToBitSet(self::bitSetSize($size), '1'));
     }
 
     private static function boardToBitSet(Board $board): BitSet
     {
         return ($board instanceof self)
             ? $board->bitSet
-            : static::stringToBitSet($board->toString());
+            : static::stringToBitSet($board->size(), $board->toString());
     }
 
-    private static function layerMask(int $layerSize): BitSet
+    private static function layerMask(int $size, int $layerSize): BitSet
     {
         static $layerMasks = [];
 
-        if (!isset($layerMasks[$layerSize])) {
-            $layerMask = self::zeroBitSet();
+        if (!isset($layerMasks[$size][$layerSize])) {
+            $layerMask = self::zeroBitSet($size);
             $j = $layerSize ** 2;
             for ($i = 0; $i < $j; $i++) {
                 $layerMask = $layerMask->set($i);
             }
             $layerMask = $layerMask->shift(self::layerShift($layerSize));
-            $layerMasks[$layerSize] = $layerMask;
+            $layerMasks[$size][$layerSize] = $layerMask;
         }
 
-        return $layerMasks[$layerSize];
+        return $layerMasks[$size][$layerSize];
     }
 
     private static function layerShift(int $layerSize): int
@@ -471,14 +473,29 @@ abstract class BitSetBoard implements Board
         static $boardMasks = [];
 
         if (!isset($boardMasks[$size])) {
-            $boardMask = self::zeroBitSet();
+            $boardMask = self::zeroBitSet($size);
             for ($i = 1; $i <= $size; $i++) {
-                $boardMask = $boardMask->or(self::layerMask($i));
+                $boardMask = $boardMask->or(self::layerMask($size, $i));
             }
             $boardMasks[$size] = $boardMask;
         }
 
         return $boardMasks[$size];
+    }
+
+    private static function bitSetSize(int $size): int
+    {
+        static $bitSetSizes = [];
+
+        if (!isset($bitSetSizes[$size])) {
+            $bitSetSize = 0;
+            for ($i = 1; $i <= $size; $i++) {
+                $bitSetSize += $i ** 2;
+            }
+            $bitSetSizes[$size] = $bitSetSize;
+        }
+
+        return $bitSetSizes[$size];
     }
 
     private static function assertSize(int $size): void
