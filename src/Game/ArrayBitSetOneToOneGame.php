@@ -133,11 +133,14 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
 
     private function handleMove(Move $move, int $movesMade): void
     {
-        if ($movesMade % 2 === 0) {
-            $this->firstBoard = $this->firstBoard->or($move->toBoard($this->size));
-        } else {
-            $this->secondBoard = $this->secondBoard->or($move->toBoard($this->size));
-        }
+        /** @var Board[] $boards */
+        $boards = [
+            &$this->firstBoard,
+            &$this->secondBoard,
+        ];
+
+        $playerBoard =& $boards[$movesMade % 2];
+        $playerBoard = $playerBoard->or($move->toBoard($this->size));
 
         $occupiedBoard = $this->occupiedBoard();
 
@@ -146,29 +149,18 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
                 break;
             }
 
-            $firstChain = $this->vacantBoard()->and($this->scaffoldedBoard())->and($this->firstBoard->promoteMajority());
-            $firstVacancy = $this->piecesPerPlayer - $this->firstBoard->count();
-            if ($firstChain->count() <= $firstVacancy) {
-                $this->firstBoard = $this->firstBoard->or($firstChain);
-            } else {
-                $chainMoves = ArrayBitSetMove::fromBoard($firstChain);
-                for ($i = 0; $i < $firstVacancy; $i++) {
-                    /** @var Move $chainMove */
-                    $chainMove = array_shift($chainMoves);
-                    $this->firstBoard = $this->firstBoard->or($chainMove->toBoard($this->size));
-                }
-            }
-
-            $secondChain = $this->vacantBoard()->and($this->scaffoldedBoard())->and($this->secondBoard->promoteMajority());
-            $secondVacancy = $this->piecesPerPlayer - $this->secondBoard->count();
-            if ($secondChain->count() <= $secondVacancy) {
-                $this->secondBoard = $this->secondBoard->or($secondChain);
-            } else {
-                $chainMoves = ArrayBitSetMove::fromBoard($secondChain);
-                for ($i = 0; $i < $secondVacancy; $i++) {
-                    /** @var Move $chainMove */
-                    $chainMove = array_shift($chainMoves);
-                    $this->secondBoard = $this->secondBoard->or($chainMove->toBoard($this->size));
+            foreach ($boards as &$chainingBoard) {
+                $chain = $this->vacantBoard()->and($this->scaffoldedBoard())->and($chainingBoard->promoteMajority());
+                $vacancy = $this->piecesPerPlayer - $chainingBoard->count();
+                if ($chain->count() <= $vacancy) {
+                    $chainingBoard = $chainingBoard->or($chain);
+                } else {
+                    $chainMoves = ArrayBitSetMove::fromBoard($chain);
+                    for ($i = 0; $i < $vacancy; $i++) {
+                        /** @var Move $chainMove */
+                        $chainMove = array_shift($chainMoves);
+                        $chainingBoard = $chainingBoard->or($chainMove->toBoard($this->size));
+                    }
                 }
             }
 
