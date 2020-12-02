@@ -14,6 +14,8 @@ use MosaicGame\Board\Board;
 
 interface TwoToTwoGame extends Game
 {
+    public function size(): int;
+
     public function firstBoard(): Board;
 
     public function secondBoard(): Board;
@@ -23,4 +25,16 @@ interface TwoToTwoGame extends Game
     public function fourthBoard(): Board;
 
     public function neutralBoard(): Board;
+
+    public function firstAndThirdWins(): bool;
+
+    public function secondAndFourthWins(): bool;
+
+    public function isFirstTurn(): bool;
+
+    public function isSecondTurn(): bool;
+
+    public function isThirdTurn(): bool;
+
+    public function isFourthTurn(): bool;
 }

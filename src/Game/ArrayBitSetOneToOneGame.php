@@ -29,6 +29,9 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
     private $size;
 
     /** @var Board */
+    private $board;
+
+    /** @var Board */
     private $firstBoard;
 
     /** @var Board */
@@ -50,6 +53,7 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
     private $piecesPerPlayer;
 
     private function __construct(int $size) {
+        $this->board = ArrayBitSetBoard::filledBoard($size);
         $this->size = $size;
         $this->piecesPerPlayer = intdiv(ArrayBitSetBoard::filledBoard($size)->count(), 2);
         $this->moves = [];
@@ -82,6 +86,11 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
     public function size(): int
     {
         return $this->size;
+    }
+
+    public function board(): Board
+    {
+        return $this->board;
     }
 
     public function firstBoard(): Board
