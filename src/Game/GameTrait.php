@@ -31,13 +31,13 @@ trait GameTrait
         return $this->occupiedBoard()->flip();
     }
 
-    public function legalMovesBoard(): Board
+    public function legalBoard(): Board
     {
         return $this->vacantBoard()->and($this->scaffoldedBoard());
     }
 
     public function isLegalMove(Move $move): bool
     {
-        return $this->legalMovesBoard()->and($move->toBoard($this->size()))->count() > 0;
+        return $this->legalBoard()->and($move->toBoard($this->size()))->count() > 0;
     }
 }

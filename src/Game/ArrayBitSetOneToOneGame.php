@@ -111,7 +111,7 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
 
     public function legalMoves(): array
     {
-        return ArrayBitSetMove::fromBoard($this->legalMovesBoard());
+        return ArrayBitSetMove::fromBoard($this->legalBoard());
     }
 
     public function makeMove(Move $move): void

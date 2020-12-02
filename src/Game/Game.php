@@ -27,10 +27,7 @@ interface Game
 
     public function isOver(): bool;
 
-    /**
-     * @return Board
-     */
-    public function legalMovesBoard(): Board;
+    public function legalBoard(): Board;
 
     /**
      * @return Move[]
