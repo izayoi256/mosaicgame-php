@@ -20,12 +20,13 @@ use function range;
 abstract class BitSetBoard implements Board
 {
     public const MAX_SIZE = 7;
-    protected const PROMOTE_ZERO = 0b000001;
-    protected const PROMOTE_ONE = 0b000010;
-    protected const PROMOTE_TWO = 0b000100;
-    protected const PROMOTE_THREE = 0b001000;
-    protected const PROMOTE_FOUR = 0b010000;
-    protected const PROMOTE_MAJORITY = 0b100000;
+    protected const PROMOTE_ZERO = 0b0000001;
+    protected const PROMOTE_ONE = 0b0000010;
+    protected const PROMOTE_TWO = 0b0000100;
+    protected const PROMOTE_THREE = 0b0001000;
+    protected const PROMOTE_FOUR = 0b0010000;
+    protected const PROMOTE_MAJORITY = 0b0100000;
+    protected const PROMOTE_HALF_OR_MORE = 0b1000000;
 
     /** @var int */
     private $size;
@@ -337,6 +338,11 @@ abstract class BitSetBoard implements Board
         return $this->promote(self::PROMOTE_FOUR);
     }
 
+    public function promoteHalfOrMore(): Board
+    {
+        return $this->promote(self::PROMOTE_HALF_OR_MORE);
+    }
+
     public function promoteMajority(): Board
     {
         return $this->promote(self::PROMOTE_MAJORITY);
@@ -394,6 +400,14 @@ abstract class BitSetBoard implements Board
                 $p2 = $srcLayer->and($srcLayer->unshift($srcLayerSize));
                 $p2 = $p2->or($p2->unshift(1));
                 $promotedLayer = $promotedLayer->or($p1->and($p2));
+            }
+
+            if ($type & self::PROMOTE_HALF_OR_MORE) {
+                $p1 = $srcLayer->or($srcLayer->unshift(1));
+                $p1 = $p1->and($p1->unshift($srcLayerSize));
+                $p2 = $srcLayer->or($srcLayer->unshift($srcLayerSize));
+                $p2 = $p2->and($p2->unshift(1));
+                $promotedLayer = $promotedLayer->or($p1)->or($p2);
             }
 
             for ($i = 0; $i < $dstLayerSize; $i++) {

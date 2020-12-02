@@ -144,6 +144,7 @@ final class ArrayBitSetBoardTest extends TestCase
             'promoteThree' => '00000000000100',
             'promoteFour' => '00000000000001',
             'promoteMajority' => '00000000000101',
+            'promoteHalfOrMore' => '00000000000111',
         ];
         foreach ($data as $key => $expected) {
             yield $key => [$key, $expected];

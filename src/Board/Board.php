@@ -164,6 +164,13 @@ interface Board extends Countable
     public function promoteFour(): self;
 
     /**
+     * Return an instance with promotion result by half-or-more.
+     *
+     * @return self
+     */
+    public function promoteHalfOrMore(): self;
+
+    /**
      * Return an instance with promotion result by majority.
      *
      * @return self
