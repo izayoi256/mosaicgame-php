@@ -49,12 +49,15 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
     /** @var int */
     private $piecesPerPlayer;
 
-    private function __construct(int $size) {
+    private function __construct(int $size, int $piecesPerPlayer, array $moves, int $undoCount, Board $firstBoard, Board $secondBoard, Board $neutralBoard) {
         $this->size = $size;
-        $this->piecesPerPlayer = intdiv(ArrayBitSetBoard::filledBoard($size)->count(), 2);
-        $this->moves = [];
-        $this->undoCount = 0;
-        $this->resetBoard();
+        $this->piecesPerPlayer = $piecesPerPlayer;
+        $this->moves = $moves;
+        $this->undoCount = $undoCount;
+        $this->firstBoard = $firstBoard;
+        $this->secondBoard = $secondBoard;
+        $this->neutralBoard = $neutralBoard;
+        $this->groundBoard = ArrayBitSetBoard::groundBoard($size);
     }
 
     private function resetBoard(): void
@@ -74,14 +77,45 @@ final class ArrayBitSetOneToOneGame implements OneToOneGame
         }
     }
 
-    public static function create(int $size): OneToOneGame
+    private static function fromSize(int $size): self
     {
-        return new self($size);
+        return new self(
+            $size,
+            intdiv(ArrayBitSetBoard::filledBoard($size)->count(), 2),
+            [],
+            0,
+            ArrayBitSetBoard::emptyBoard($size),
+            ArrayBitSetBoard::emptyBoard($size),
+            ArrayBitSetBoard::neutralBoard($size),
+        );
+    }
+
+    public static function create(int $size): self
+    {
+        return self::fromSize($size);
+    }
+
+    public static function fromSnapshot(int $size, array $moves, Board $firstBoard, Board $secondBoard, Board $neutralBoard)
+    {
+        return new self(
+            $size,
+            intdiv(ArrayBitSetBoard::filledBoard($size)->count(), 2),
+            $moves,
+            0,
+            $firstBoard,
+            $secondBoard,
+            $neutralBoard,
+        );
     }
 
     public function size(): int
     {
         return $this->size;
+    }
+
+    public function piecesPerPlayer(): int
+    {
+        return $this->piecesPerPlayer;
     }
 
     public function firstBoard(): Board

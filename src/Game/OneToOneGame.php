@@ -16,6 +16,8 @@ interface OneToOneGame extends Game
 {
     public function size(): int;
 
+    public function piecesPerPlayer(): int;
+
     public function firstBoard(): Board;
 
     public function secondBoard(): Board;
