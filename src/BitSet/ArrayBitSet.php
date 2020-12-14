@@ -59,7 +59,12 @@ final class ArrayBitSet implements BitSet
 
     public static function filled(int $size): BitSet
     {
-        return new static($size, array_fill(0, $size, true));
+        return self::fromArray($size, array_fill(0, $size, true));
+    }
+
+    public static function fromArray(int $size, array $array): BitSet
+    {
+        return new static($size, array_filter($array));
     }
 
     public static function fromString(int $size, string $bitsString): BitSet

@@ -19,4 +19,9 @@ final class ArrayBitSetBoard extends BitSetBoard
     {
         return ArrayBitSet::fromString($bitSetSize, $string);
     }
+
+    protected static function arrayToBitSet(int $bitSetSize, array $array): BitSet
+    {
+        return ArrayBitSet::fromArray($bitSetSize, $array);
+    }
 }

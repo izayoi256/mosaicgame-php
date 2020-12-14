@@ -48,6 +48,13 @@ abstract class BitSetBoard implements Board
         return new static($size, static::stringToBitSet(self::bitSetSize($size), $cells));
     }
 
+    abstract protected static function arrayToBitSet(int $bitSetSize, array $array): BitSet;
+
+    public static function fromArray(int $size, array $cells): Board
+    {
+        return new static($size, static::arrayToBitSet(self::bitSetSize($size), $cells));
+    }
+
     public static function emptyBoard(int $size): Board
     {
         static $boards = [];
