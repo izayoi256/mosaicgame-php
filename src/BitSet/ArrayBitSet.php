@@ -13,7 +13,6 @@ namespace MosaicGame\BitSet;
 use BadMethodCallException;
 use InvalidArgumentException;
 use OutOfRangeException;
-use Throwable;
 use function array_diff_key;
 use function array_fill;
 use function array_fill_keys;
@@ -52,22 +51,22 @@ final class ArrayBitSet implements BitSet
         }, ARRAY_FILTER_USE_KEY);
     }
 
-    public static function empty(int $size): BitSet
+    public static function empty(int $size): self
     {
         return new static($size);
     }
 
-    public static function filled(int $size): BitSet
+    public static function filled(int $size): self
     {
         return self::fromArray($size, array_fill(0, $size, true));
     }
 
-    public static function fromArray(int $size, array $array): BitSet
+    public static function fromArray(int $size, array $array): self
     {
         return new static($size, array_filter($array));
     }
 
-    public static function fromString(int $size, string $bitsString): BitSet
+    public static function fromString(int $size, string $bitsString): self
     {
         if (!preg_match('/\A[01]*\z/', $bitsString)) {
             throw new InvalidArgumentException('Invalid format.');
@@ -121,7 +120,7 @@ final class ArrayBitSet implements BitSet
     {
         $bits = $this->bits;
         foreach ($offsets as $offset) {
-            static::assertOffset($offset);
+            $this->assertOffset($offset);
             $bits[$offset] = $offset;
         }
         return $this->withBits($bits);
@@ -136,7 +135,7 @@ final class ArrayBitSet implements BitSet
     {
         $bits = $this->bits;
         foreach ($offsets as $offset) {
-            static::assertOffset($offset);
+            $this->assertOffset($offset);
             unset($bits[$offset]);
         }
         return $this->withBits($bits);
@@ -223,8 +222,8 @@ final class ArrayBitSet implements BitSet
     public function offsetExists($offset)
     {
         try {
-            static::assertOffset($offset);
-        } catch (Throwable $e) {
+            $this->assertOffset($offset);
+        } catch (OutOfRangeException $e) {
             return false;
         }
         return true;
@@ -232,7 +231,7 @@ final class ArrayBitSet implements BitSet
 
     public function offsetGet($offset)
     {
-        static::assertOffset($offset);
+        $this->assertOffset($offset);
         return isset($this->bits[$offset]);
     }
 

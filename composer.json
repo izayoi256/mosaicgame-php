@@ -19,6 +19,9 @@
     "require": {
         "php": "^7.3|^8.0"
     },
+    "suggest": {
+        "ext-gmp": "Needed to support GMP, faster logic"
+    },
     "autoload": {
         "psr-4": {
             "MosaicGame\\": "./src"

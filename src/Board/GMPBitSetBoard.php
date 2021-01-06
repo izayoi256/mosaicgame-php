@@ -10,13 +10,14 @@
 
 namespace MosaicGame\Board;
 
-use MosaicGame\BitSet\ArrayBitSet;
 use MosaicGame\BitSet\BitSet;
+use MosaicGame\BitSet\GMPBitSet;
+use function gmp_init;
 
-final class ArrayBitSetBoard extends BitSetBoard
+final class GMPBitSetBoard extends BitSetBoard
 {
     protected static function stringToBitSet(int $bitSetSize, string $string): BitSet
     {
-        return ArrayBitSet::fromString($bitSetSize, $string);
+        return GMPBitSet::fromGMP($bitSetSize, gmp_init($string, 2));
     }
 }
