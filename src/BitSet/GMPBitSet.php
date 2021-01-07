@@ -12,7 +12,6 @@ namespace MosaicGame\BitSet;
 
 use BadMethodCallException;
 use GMP;
-use OutOfRangeException;
 use function assert;
 use function gmp_and;
 use function gmp_clrbit;
@@ -60,13 +59,21 @@ final class GMPBitSet implements BitSet
 
     public static function empty(int $size): self
     {
-        return self::fromGMP($size, gmp_init(0));
+        static $cache = [];
+        if (!isset($cache[$size])) {
+            $cache[$size] = self::fromGMP($size, gmp_init(0));
+        }
+        return $cache[$size];
     }
 
     public static function filled(int $size): self
     {
-        $zeros = str_repeat('0', $size);
-        return self::fromGMP($size, gmp_sub(gmp_init("0b1{$zeros}"), 1));
+        static $cache = [];
+        if (!isset($cache[$size])) {
+            $zeros = str_repeat('0', $size);
+            $cache[$size] = self::fromGMP($size, gmp_sub(gmp_init("0b1{$zeros}"), 1));
+        }
+        return $cache[$size];
     }
 
     public function __toString()
@@ -104,7 +111,12 @@ final class GMPBitSet implements BitSet
 
     public function equalsTo(BitSet $other): bool
     {
-        return gmp_cmp($this->gmp, self::bitSetToGMP($other)) === 0;
+        return gmp_cmp(
+                $this->gmp,
+                ($other instanceof self)
+                    ? $other->gmp
+                    : gmp_init($other->toString(), 2)
+            ) === 0;
     }
 
     public function set(int ...$offsets): BitSet
@@ -145,17 +157,32 @@ final class GMPBitSet implements BitSet
 
     public function and(BitSet $other): BitSet
     {
-        return new self($this->size, gmp_and($this->gmp, self::bitSetToGMP($other)));
+        return new self(
+            $this->size,
+            gmp_and($this->gmp, ($other instanceof self)
+                ? $other->gmp
+                : gmp_init($other->toString(), 2)),
+        );
     }
 
     public function or(BitSet $other): BitSet
     {
-        return new self($this->size, gmp_or($this->gmp, self::bitSetToGMP($other)));
+        return new self(
+            $this->size,
+            gmp_or($this->gmp, ($other instanceof self)
+                ? $other->gmp
+                : gmp_init($other->toString(), 2)),
+        );
     }
 
     public function xor(BitSet $other): BitSet
     {
-        return new self($this->size, gmp_xor($this->gmp, self::bitSetToGMP($other)));
+        return new self(
+            $this->size,
+            gmp_xor($this->gmp, ($other instanceof self)
+                ? $other->gmp
+                : gmp_init($other->toString(), 2)),
+        );
     }
 
     public function flip(): BitSet
@@ -173,13 +200,6 @@ final class GMPBitSet implements BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
         return new self($this->size, $this->gmp >> $amount);
-    }
-
-    private static function bitSetToGMP(BitSet $bitSet): GMP
-    {
-        return ($bitSet instanceof self)
-            ? $bitSet->gmp
-            : gmp_init($bitSet->toString(), 2);
     }
 
     public function offsetExists($offset)
@@ -204,12 +224,5 @@ final class GMPBitSet implements BitSet
     public function offsetUnset($offset)
     {
         throw new BadMethodCallException('BitSet is immutable.');
-    }
-
-    private static function assertShiftAmount(int $amount): void
-    {
-        if ($amount < 0) {
-            throw new OutOfRangeException("Illegal shift amount: {$amount}");
-        }
     }
 }

@@ -260,7 +260,7 @@ final class GMPBitSetTest extends TestCase
             false,
             false,
             true,
-            false
+            false,
         ];
         $this->assertSame($expected, iterator_to_array($bitSet));
     }

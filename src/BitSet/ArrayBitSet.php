@@ -50,12 +50,20 @@ final class ArrayBitSet implements BitSet
 
     public static function empty(int $size): self
     {
-        return new static($size);
+        static $cache = [];
+        if (!isset($cache[$size])) {
+            $cache[$size] = new static($size);
+        }
+        return $cache[$size];
     }
 
     public static function filled(int $size): self
     {
-        return self::fromArray($size, array_fill(0, $size, true));
+        static $cache = [];
+        if (!isset($cache[$size])) {
+            $cache[$size] = self::fromArray($size, array_fill(0, $size, true));
+        }
+        return $cache[$size];
     }
 
     public static function fromArray(int $size, array $array): self
@@ -149,25 +157,26 @@ final class ArrayBitSet implements BitSet
 
     public function and(BitSet $other): BitSet
     {
-        return new self($this->size, array_intersect_key($this->bits, static::bitSetToBits($other)));
+        $otherBits = ($other instanceof self)
+            ? $other->bits
+            : array_filter(iterator_to_array($other));
+        return new self($this->size, array_intersect_key($this->bits, $otherBits));
     }
 
     public function or(BitSet $other): BitSet
     {
-        return new self($this->size, $this->bits + static::bitSetToBits($other));
+        $otherBits = ($other instanceof self)
+            ? $other->bits
+            : array_filter(iterator_to_array($other));
+        return new self($this->size, $this->bits + $otherBits);
     }
 
     public function xor(BitSet $other): BitSet
     {
-        $otherBits = static::bitSetToBits($other);
+        $otherBits = ($other instanceof self)
+            ? $other->bits
+            : array_filter(iterator_to_array($other));
         return new self($this->size, array_diff_key($this->bits, $otherBits) + array_diff_key($otherBits, $this->bits));
-    }
-
-    private static function bitSetToBits(BitSet $bitSet): array
-    {
-        return ($bitSet instanceof self)
-            ? $bitSet->bits
-            : array_filter(iterator_to_array($bitSet));
     }
 
     public function flip(): BitSet
@@ -197,7 +206,9 @@ final class ArrayBitSet implements BitSet
 
     public function equalsTo(BitSet $other): bool
     {
-        $otherBits = static::bitSetToBits($other);
+        $otherBits = ($other instanceof self)
+            ? $other->bits
+            : array_filter(iterator_to_array($other));
         return !array_diff_key($this->bits, $otherBits) && !array_diff_key($otherBits, $this->bits);
     }
 
