@@ -10,12 +10,13 @@
 
 namespace MosaicGame\Board;
 
-use InvalidArgumentException;
 use MosaicGame\BitSet\BitSet;
 use function abs;
+use function assert;
 use function count;
 use function intdiv;
 use function range;
+use function sprintf;
 
 abstract class BitSetBoard implements Board
 {
@@ -36,7 +37,7 @@ abstract class BitSetBoard implements Board
 
     protected function __construct(int $size, BitSet $bitSet)
     {
-        self::assertSize($size);
+        assert(0 < $size && $size <= self::MAX_SIZE, sprintf('Board size must be between 1 and %d.', self::MAX_SIZE));
         $this->size = $size;
         $this->bitSet = self::boardMask($size)->and($bitSet);
     }
@@ -511,12 +512,5 @@ abstract class BitSetBoard implements Board
         }
 
         return $bitSetSizes[$size];
-    }
-
-    private static function assertSize(int $size): void
-    {
-        if ($size < 1 || self::MAX_SIZE < $size) {
-            throw new InvalidArgumentException(sprintf('Board size must be between 1 and %d.', self::MAX_SIZE));
-        }
     }
 }

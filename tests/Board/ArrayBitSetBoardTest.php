@@ -10,12 +10,29 @@
 
 namespace MosaicGame\Test\Board;
 
-use InvalidArgumentException;
+use AssertionError;
 use MosaicGame\Board\ArrayBitSetBoard;
 use PHPUnit\Framework\TestCase;
+use function assert_options;
+use const ASSERT_EXCEPTION;
 
 final class ArrayBitSetBoardTest extends TestCase
 {
+    private $originalAssertException;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->originalAssertException = assert_options(ASSERT_EXCEPTION);
+        assert_options(ASSERT_EXCEPTION, 1);
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        assert_options(ASSERT_EXCEPTION, $this->originalAssertException);
+    }
+
     public function testEmptyBoard()
     {
         $this->assertSame('0', ArrayBitSetBoard::emptyBoard(1)->toString());
@@ -26,14 +43,14 @@ final class ArrayBitSetBoardTest extends TestCase
     public function testTooMuchSize()
     {
         ArrayBitSetBoard::emptyBoard(7);
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSetBoard::emptyBoard(8);
     }
 
     public function testTooLessSize()
     {
         ArrayBitSetBoard::emptyBoard(1);
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSetBoard::emptyBoard(0);
     }
 

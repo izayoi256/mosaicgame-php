@@ -12,8 +12,8 @@ namespace MosaicGame\BitSet;
 
 use BadMethodCallException;
 use GMP;
-use InvalidArgumentException;
 use OutOfRangeException;
+use function assert;
 use function gmp_and;
 use function gmp_clrbit;
 use function gmp_cmp;
@@ -41,9 +41,7 @@ final class GMPBitSet implements BitSet
 
     private function __construct(int $size, GMP $gmp)
     {
-        if ($size < 0) {
-            throw new InvalidArgumentException('GMPBitSet size must be greater than or equal to 0.');
-        }
+        assert($size >= 0, 'GMPBitSet size must be greater than or equal to 0.');
 
         $this->size = $size;
 
@@ -113,7 +111,10 @@ final class GMPBitSet implements BitSet
     {
         $gmp = clone $this->gmp;
         foreach ($offsets as $offset) {
-            $this->assertOffset($offset);
+            assert(
+                is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1),
+                "Undefined offset: {$offset}",
+            );
             gmp_setbit($gmp, $offset);
         }
         return $this->withGMP($gmp);
@@ -128,7 +129,10 @@ final class GMPBitSet implements BitSet
     {
         $gmp = clone $this->gmp;
         foreach ($offsets as $offset) {
-            $this->assertOffset($offset);
+            assert(
+                is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1),
+                "Undefined offset: {$offset}",
+            );
             gmp_clrbit($gmp, $offset);
         }
         return $this->withGMP($gmp);
@@ -161,13 +165,13 @@ final class GMPBitSet implements BitSet
 
     public function shift(int $amount): BitSet
     {
-        static::assertShiftAmount($amount);
+        assert($amount >= 0, "Illegal shift amount: {$amount}");
         return $this->withGMP($this->gmp << $amount);
     }
 
     public function unshift(int $amount): BitSet
     {
-        static::assertShiftAmount($amount);
+        assert($amount >= 0, "Illegal shift amount: {$amount}");
         return $this->withGMP($this->gmp >> $amount);
     }
 
@@ -185,17 +189,15 @@ final class GMPBitSet implements BitSet
 
     public function offsetExists($offset)
     {
-        try {
-            $this->assertOffset($offset);
-        } catch (OutOfRangeException $e) {
-            return false;
-        }
-        return true;
+        return is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1);
     }
 
     public function offsetGet($offset)
     {
-        $this->assertOffset($offset);
+        assert(
+            is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1),
+            "Undefined offset: {$offset}",
+        );
         return gmp_testbit($this->gmp, $offset);
     }
 
@@ -207,13 +209,6 @@ final class GMPBitSet implements BitSet
     public function offsetUnset($offset)
     {
         throw new BadMethodCallException('BitSet is immutable.');
-    }
-
-    private function assertOffset($offset): void
-    {
-        if (!is_int($offset) || $offset < 0 || $offset > ($this->size - 1)) {
-            throw new OutOfRangeException("Undefined offset: {$offset}");
-        }
     }
 
     private static function assertShiftAmount(int $amount): void

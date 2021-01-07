@@ -10,19 +10,35 @@
 
 namespace MosaicGame\Test\BitSet;
 
+use AssertionError;
 use BadMethodCallException;
-use InvalidArgumentException;
 use MosaicGame\BitSet\ArrayBitSet;
-use OutOfRangeException;
 use PHPUnit\Framework\TestCase;
+use function assert_options;
 use function count;
 use function iterator_to_array;
+use const ASSERT_EXCEPTION;
 
 final class ArrayBitSetTest extends TestCase
 {
+    private $originalAssertException;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->originalAssertException = assert_options(ASSERT_EXCEPTION);
+        assert_options(ASSERT_EXCEPTION, 1);
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        assert_options(ASSERT_EXCEPTION, $this->originalAssertException);
+    }
+
     public function testNegativeSize()
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::empty(-1);
     }
 
@@ -41,7 +57,7 @@ final class ArrayBitSetTest extends TestCase
 
     public function testFromStringWithInvalidFormat()
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(3, '012');
     }
 
@@ -111,13 +127,13 @@ final class ArrayBitSetTest extends TestCase
 
     public function testSetWithTooMuchOffset()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '00100100')->set(8);
     }
 
     public function testSetWithNegativeOffset()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '00100100')->set(-1);
     }
 
@@ -136,13 +152,13 @@ final class ArrayBitSetTest extends TestCase
 
     public function testClearWithTooMuchOffset()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '11011011')->clear(8);
     }
 
     public function testClearWithNegativeOffset()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '11011011')->clear(-1);
     }
 
@@ -161,7 +177,7 @@ final class ArrayBitSetTest extends TestCase
 
     public function testShiftWithNegativeAmount()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '10100110')->shift(-1);
     }
 
@@ -175,7 +191,7 @@ final class ArrayBitSetTest extends TestCase
 
     public function testUnshiftWithNegativeAmount()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '10100110')->unshift(-1);
     }
 
@@ -215,13 +231,13 @@ final class ArrayBitSetTest extends TestCase
 
     public function testArrayAccessOffsetGetWithNegativeOffset()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '01001100')[-1];
     }
 
     public function testArrayAccessOffsetGetWithTooMuchOffset()
     {
-        $this->expectException(OutOfRangeException::class);
+        $this->expectException(AssertionError::class);
         ArrayBitSet::fromString(8, '01001100')[8];
     }
 

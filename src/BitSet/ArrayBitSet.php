@@ -11,8 +11,6 @@
 namespace MosaicGame\BitSet;
 
 use BadMethodCallException;
-use InvalidArgumentException;
-use OutOfRangeException;
 use function array_diff_key;
 use function array_fill;
 use function array_fill_keys;
@@ -21,6 +19,7 @@ use function array_intersect_key;
 use function array_keys;
 use function array_map;
 use function array_reverse;
+use function assert;
 use function count;
 use function implode;
 use function is_int;
@@ -41,9 +40,7 @@ final class ArrayBitSet implements BitSet
 
     private function __construct(int $size, array $bits = [])
     {
-        if ($size < 0) {
-            throw new InvalidArgumentException('ArrayBitSet size must be greater than or equal to 0.');
-        }
+        assert($size >= 0, 'ArrayBitSet size must be greater than or equal to 0.');
 
         $this->size = $size;
         $this->bits = array_filter($bits, static function (int $offset) use ($size) {
@@ -68,9 +65,7 @@ final class ArrayBitSet implements BitSet
 
     public static function fromString(int $size, string $bitsString): self
     {
-        if (!preg_match('/\A[01]*\z/', $bitsString)) {
-            throw new InvalidArgumentException('Invalid format.');
-        }
+        assert(preg_match('/\A[01]*\z/', $bitsString), 'Invalid format.');
 
         $iterator = (static function () use ($size, $bitsString) {
             yield from [];
@@ -120,7 +115,10 @@ final class ArrayBitSet implements BitSet
     {
         $bits = $this->bits;
         foreach ($offsets as $offset) {
-            $this->assertOffset($offset);
+            assert(
+                is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1),
+                "Undefined offset: {$offset}",
+            );
             $bits[$offset] = $offset;
         }
         return $this->withBits($bits);
@@ -135,7 +133,10 @@ final class ArrayBitSet implements BitSet
     {
         $bits = $this->bits;
         foreach ($offsets as $offset) {
-            $this->assertOffset($offset);
+            assert(
+                is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1),
+                "Undefined offset: {$offset}",
+            );
             unset($bits[$offset]);
         }
         return $this->withBits($bits);
@@ -176,7 +177,7 @@ final class ArrayBitSet implements BitSet
 
     public function shift(int $amount): BitSet
     {
-        static::assertShiftAmount($amount);
+        assert($amount >= 0, "Illegal shift amount: {$amount}");
 
         $bits = array_map(static function (int $offset) use ($amount) {
             return $offset + $amount;
@@ -186,7 +187,7 @@ final class ArrayBitSet implements BitSet
 
     public function unshift(int $amount): BitSet
     {
-        static::assertShiftAmount($amount);
+        assert($amount >= 0, "Illegal shift amount: {$amount}");
 
         $bits = array_map(static function (int $offset) use ($amount) {
             return $offset - $amount;
@@ -200,20 +201,6 @@ final class ArrayBitSet implements BitSet
         return !array_diff_key($this->bits, $otherBits) && !array_diff_key($otherBits, $this->bits);
     }
 
-    private function assertOffset($offset): void
-    {
-        if (!is_int($offset) || $offset < 0 || $offset > ($this->size - 1)) {
-            throw new OutOfRangeException("Undefined offset: {$offset}");
-        }
-    }
-
-    private static function assertShiftAmount(int $amount): void
-    {
-        if ($amount < 0) {
-            throw new OutOfRangeException("Illegal shift amount: {$amount}");
-        }
-    }
-
     private function withBits(array $bits): self
     {
         return new static($this->size, $bits);
@@ -221,17 +208,15 @@ final class ArrayBitSet implements BitSet
 
     public function offsetExists($offset)
     {
-        try {
-            $this->assertOffset($offset);
-        } catch (OutOfRangeException $e) {
-            return false;
-        }
-        return true;
+        return is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1);
     }
 
     public function offsetGet($offset)
     {
-        $this->assertOffset($offset);
+        assert(
+            is_int($offset) && 0 <= $offset && $offset <= ($this->size - 1),
+            "Undefined offset: {$offset}",
+        );
         return isset($this->bits[$offset]);
     }
 
