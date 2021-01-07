@@ -117,12 +117,12 @@ final class GMPBitSet implements BitSet
             );
             gmp_setbit($gmp, $offset);
         }
-        return $this->withGMP($gmp);
+        return new self($this->size, $gmp);
     }
 
     public function setAll(): BitSet
     {
-        return $this->withGMP(gmp_init(str_repeat('1', $this->size), 2));
+        return new self($this->size, gmp_init(str_repeat('1', $this->size), 2));
     }
 
     public function clear(int ...$offsets): BitSet
@@ -135,7 +135,7 @@ final class GMPBitSet implements BitSet
             );
             gmp_clrbit($gmp, $offset);
         }
-        return $this->withGMP($gmp);
+        return new self($this->size, $gmp);
     }
 
     public function clearAll(): BitSet
@@ -145,34 +145,34 @@ final class GMPBitSet implements BitSet
 
     public function and(BitSet $other): BitSet
     {
-        return $this->withGMP(gmp_and($this->gmp, self::bitSetToGMP($other)));
+        return new self($this->size, gmp_and($this->gmp, self::bitSetToGMP($other)));
     }
 
     public function or(BitSet $other): BitSet
     {
-        return $this->withGMP(gmp_or($this->gmp, self::bitSetToGMP($other)));
+        return new self($this->size, gmp_or($this->gmp, self::bitSetToGMP($other)));
     }
 
     public function xor(BitSet $other): BitSet
     {
-        return $this->withGMP(gmp_xor($this->gmp, self::bitSetToGMP($other)));
+        return new self($this->size, gmp_xor($this->gmp, self::bitSetToGMP($other)));
     }
 
     public function flip(): BitSet
     {
-        return $this->withGMP(gmp_com($this->gmp));
+        return new self($this->size, gmp_com($this->gmp));
     }
 
     public function shift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
-        return $this->withGMP($this->gmp << $amount);
+        return new self($this->size, $this->gmp << $amount);
     }
 
     public function unshift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
-        return $this->withGMP($this->gmp >> $amount);
+        return new self($this->size, $this->gmp >> $amount);
     }
 
     private static function bitSetToGMP(BitSet $bitSet): GMP
@@ -180,11 +180,6 @@ final class GMPBitSet implements BitSet
         return ($bitSet instanceof self)
             ? $bitSet->gmp
             : gmp_init($bitSet->toString(), 2);
-    }
-
-    private function withGMP(GMP $gmp): self
-    {
-        return self::fromGMP($this->size, $gmp);
     }
 
     public function offsetExists($offset)

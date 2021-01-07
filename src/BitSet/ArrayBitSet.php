@@ -121,12 +121,12 @@ final class ArrayBitSet implements BitSet
             );
             $bits[$offset] = $offset;
         }
-        return $this->withBits($bits);
+        return new self($this->size, $bits);
     }
 
     public function setAll(): BitSet
     {
-        return $this->withBits(array_fill(0, $this->size, true));
+        return new self($this->size, array_fill(0, $this->size, true));
     }
 
     public function clear(int ...$offsets): BitSet
@@ -139,28 +139,28 @@ final class ArrayBitSet implements BitSet
             );
             unset($bits[$offset]);
         }
-        return $this->withBits($bits);
+        return new self($this->size, $bits);
     }
 
     public function clearAll(): BitSet
     {
-        return $this->withBits([]);
+        return new self($this->size, []);
     }
 
     public function and(BitSet $other): BitSet
     {
-        return $this->withBits(array_intersect_key($this->bits, static::bitSetToBits($other)));
+        return new self($this->size, array_intersect_key($this->bits, static::bitSetToBits($other)));
     }
 
     public function or(BitSet $other): BitSet
     {
-        return $this->withBits($this->bits + static::bitSetToBits($other));
+        return new self($this->size, $this->bits + static::bitSetToBits($other));
     }
 
     public function xor(BitSet $other): BitSet
     {
         $otherBits = static::bitSetToBits($other);
-        return $this->withBits(array_diff_key($this->bits, $otherBits) + array_diff_key($otherBits, $this->bits));
+        return new self($this->size, array_diff_key($this->bits, $otherBits) + array_diff_key($otherBits, $this->bits));
     }
 
     private static function bitSetToBits(BitSet $bitSet): array
@@ -182,7 +182,7 @@ final class ArrayBitSet implements BitSet
         $bits = array_map(static function (int $offset) use ($amount) {
             return $offset + $amount;
         }, array_keys($this->bits));
-        return $this->withBits(array_fill_keys($bits, true));
+        return new self($this->size, array_fill_keys($bits, true));
     }
 
     public function unshift(int $amount): BitSet
@@ -192,18 +192,13 @@ final class ArrayBitSet implements BitSet
         $bits = array_map(static function (int $offset) use ($amount) {
             return $offset - $amount;
         }, array_keys($this->bits));
-        return $this->withBits(array_fill_keys($bits, true));
+        return new self($this->size, array_fill_keys($bits, true));
     }
 
     public function equalsTo(BitSet $other): bool
     {
         $otherBits = static::bitSetToBits($other);
         return !array_diff_key($this->bits, $otherBits) && !array_diff_key($otherBits, $this->bits);
-    }
-
-    private function withBits(array $bits): self
-    {
-        return new static($this->size, $bits);
     }
 
     public function offsetExists($offset)
