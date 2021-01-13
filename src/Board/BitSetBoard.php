@@ -66,22 +66,22 @@ abstract class BitSetBoard implements Board
 
     public static function neutralBoard(int $size): Board
     {
-        static $boads = [];
+        static $boards = [];
 
-        if (!isset($boads[$size])) {
+        if (!isset($boards[$size])) {
             if ($size % 2 === 1) {
                 $bitSet = self::oneBitSet($size);
                 for ($i = 1; $i < $size; $i++) {
                     $bitSet = $bitSet->shift($i ** 2);
                 }
                 $bitSet = $bitSet->shift(intdiv($i ** 2, 2));
-                $boads[$size] = new static($size, $bitSet);
+                $boards[$size] = new static($size, $bitSet);
             } else {
-                $boads[$size] = self::emptyBoard($size);
+                $boards[$size] = self::emptyBoard($size);
             }
         }
 
-        return $boads[$size];
+        return $boards[$size];
     }
 
     public static function filledBoard(int $size): Board
