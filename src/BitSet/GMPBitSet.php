@@ -18,7 +18,9 @@ use function gmp_clrbit;
 use function gmp_cmp;
 use function gmp_com;
 use function gmp_init;
+use function gmp_or;
 use function gmp_popcount;
+use function gmp_scan1;
 use function gmp_setbit;
 use function gmp_strval;
 use function gmp_sub;
@@ -43,13 +45,20 @@ final class GMPBitSet implements BitSet
         assert($size >= 0, 'GMPBitSet size must be greater than or equal to 0.');
 
         $this->size = $size;
+        $this->gmp = $gmp;
+        $this->applySizeMask();
+    }
 
-        static $cache = [];
-        if (!isset($cache[$size])) {
-            $zeros = str_repeat('0', $size);
-            $cache[$size] = gmp_sub(gmp_init("0b1{$zeros}"), 1);
+    private function applySizeMask(): void
+    {
+        if (gmp_scan1($this->gmp, $this->size) !== -1) {
+            static $cache = [];
+            if (!isset($cache[$this->size])) {
+                $zeros = str_repeat('0', $this->size);
+                $cache[$this->size] = gmp_sub(gmp_init("0b1{$zeros}"), 1);
+            }
+            $this->gmp = gmp_and($this->gmp, $cache[$this->size]);
         }
-        $this->gmp = gmp_and($gmp, $cache[$size]);
     }
 
     public static function fromGMP(int $size, GMP $gmp): self
@@ -129,12 +138,18 @@ final class GMPBitSet implements BitSet
             );
             gmp_setbit($gmp, $offset);
         }
-        return new self($this->size, $gmp);
+        $clone = clone $this;
+        $clone->gmp = $gmp;
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function setAll(): BitSet
     {
-        return new self($this->size, gmp_init(str_repeat('1', $this->size), 2));
+        $clone = clone $this;
+        $clone->gmp = gmp_init(str_repeat('1', $this->size), 2);
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function clear(int ...$offsets): BitSet
@@ -147,7 +162,10 @@ final class GMPBitSet implements BitSet
             );
             gmp_clrbit($gmp, $offset);
         }
-        return new self($this->size, $gmp);
+        $clone = clone $this;
+        $clone->gmp = $gmp;
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function clearAll(): BitSet
@@ -157,49 +175,58 @@ final class GMPBitSet implements BitSet
 
     public function and(BitSet $other): BitSet
     {
-        return new self(
-            $this->size,
-            gmp_and($this->gmp, ($other instanceof self)
-                ? $other->gmp
-                : gmp_init($other->toString(), 2)),
-        );
+        $clone = clone $this;
+        $clone->gmp = gmp_and($this->gmp, ($other instanceof self)
+            ? $other->gmp
+            : gmp_init($other->toString(), 2));
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function or(BitSet $other): BitSet
     {
-        return new self(
-            $this->size,
-            gmp_or($this->gmp, ($other instanceof self)
-                ? $other->gmp
-                : gmp_init($other->toString(), 2)),
-        );
+        $clone = clone $this;
+        $clone->gmp = gmp_or($this->gmp, ($other instanceof self)
+            ? $other->gmp
+            : gmp_init($other->toString(), 2));
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function xor(BitSet $other): BitSet
     {
-        return new self(
-            $this->size,
-            gmp_xor($this->gmp, ($other instanceof self)
-                ? $other->gmp
-                : gmp_init($other->toString(), 2)),
-        );
+        $clone = clone $this;
+        $clone->gmp = gmp_xor($this->gmp, ($other instanceof self)
+            ? $other->gmp
+            : gmp_init($other->toString(), 2));
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function flip(): BitSet
     {
-        return new self($this->size, gmp_com($this->gmp));
+        $clone = clone $this;
+        $clone->gmp = gmp_com($this->gmp);
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function shift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
-        return new self($this->size, $this->gmp << $amount);
+        $clone = clone $this;
+        $clone->gmp = $this->gmp << $amount;
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function unshift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
-        return new self($this->size, $this->gmp >> $amount);
+        $clone = clone $this;
+        $clone->gmp = $this->gmp >> $amount;
+        $clone->applySizeMask();
+        return $clone;
     }
 
     public function offsetExists($offset)
