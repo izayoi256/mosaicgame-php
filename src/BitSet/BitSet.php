@@ -126,20 +126,20 @@ interface BitSet extends ArrayAccess, Countable, IteratorAggregate
     public function flip(): self;
 
     /**
-     * Return an instance with the result of an SHIFT operation.
+     * Return an instance with the result of a LEFT SHIFT operation.
      * This method MUST be implemented in a way to keep immutability.
      *
      * @param int $amount
      * @return self
      */
-    public function shift(int $amount): self;
+    public function lshift(int $amount): self;
 
     /**
-     * Return an instance with the result of an UNSHIFT operation.
+     * Return an instance with the result of a RIGHT SHIFT operation.
      * This method MUST be implemented in a way to keep immutability.
      *
      * @param int $amount
      * @return self
      */
-    public function unshift(int $amount): self;
+    public function rshift(int $amount): self;
 }

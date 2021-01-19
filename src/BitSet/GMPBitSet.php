@@ -211,7 +211,7 @@ final class GMPBitSet implements BitSet
         return $clone;
     }
 
-    public function shift(int $amount): BitSet
+    public function lshift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
         $clone = clone $this;
@@ -220,7 +220,7 @@ final class GMPBitSet implements BitSet
         return $clone;
     }
 
-    public function unshift(int $amount): BitSet
+    public function rshift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
         $clone = clone $this;

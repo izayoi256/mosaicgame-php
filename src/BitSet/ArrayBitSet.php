@@ -184,7 +184,7 @@ final class ArrayBitSet implements BitSet
         return static::fromString($this->size, strtr($this->toString(), ['0' => '1', '1' => '0']));
     }
 
-    public function shift(int $amount): BitSet
+    public function lshift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
 
@@ -194,7 +194,7 @@ final class ArrayBitSet implements BitSet
         return new self($this->size, array_fill_keys($bits, true));
     }
 
-    public function unshift(int $amount): BitSet
+    public function rshift(int $amount): BitSet
     {
         assert($amount >= 0, "Illegal shift amount: {$amount}");
 

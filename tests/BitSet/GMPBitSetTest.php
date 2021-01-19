@@ -164,7 +164,7 @@ final class GMPBitSetTest extends TestCase
     public function testShift()
     {
         $a = GMPBitSet::fromGMP(8, gmp_init('0b10100110'));
-        $b = $a->shift(0)->shift(2);
+        $b = $a->lshift(0)->lshift(2);
         $this->assertSame('10100110', $a->toString());
         $this->assertSame('10011000', $b->toString());
     }
@@ -172,13 +172,13 @@ final class GMPBitSetTest extends TestCase
     public function testShiftWithNegativeAmount()
     {
         $this->expectException(AssertionError::class);
-        GMPBitSet::fromGMP(8, gmp_init('0b10100110'))->shift(-1);
+        GMPBitSet::fromGMP(8, gmp_init('0b10100110'))->lshift(-1);
     }
 
     public function testUnshift()
     {
         $a = GMPBitSet::fromGMP(8, gmp_init('0b10100110'));
-        $b = $a->unshift(0)->unshift(2);
+        $b = $a->rshift(0)->rshift(2);
         $this->assertSame('10100110', $a->toString());
         $this->assertSame('00101001', $b->toString());
     }
@@ -186,7 +186,7 @@ final class GMPBitSetTest extends TestCase
     public function testUnshiftWithNegativeAmount()
     {
         $this->expectException(AssertionError::class);
-        GMPBitSet::fromGMP(8, gmp_init('0b10100110'))->unshift(-1);
+        GMPBitSet::fromGMP(8, gmp_init('0b10100110'))->rshift(-1);
     }
 
     public function testEquals()

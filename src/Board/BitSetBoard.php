@@ -72,9 +72,9 @@ abstract class BitSetBoard implements Board
             if ($size % 2 === 1) {
                 $bitSet = self::oneBitSet($size);
                 for ($i = 1; $i < $size; $i++) {
-                    $bitSet = $bitSet->shift($i ** 2);
+                    $bitSet = $bitSet->lshift($i ** 2);
                 }
-                $bitSet = $bitSet->shift(intdiv($i ** 2, 2));
+                $bitSet = $bitSet->lshift(intdiv($i ** 2, 2));
                 $boards[$size] = new static($size, $bitSet);
             } else {
                 $boards[$size] = self::emptyBoard($size);
@@ -139,13 +139,13 @@ abstract class BitSetBoard implements Board
             if ($amount < 0) {
                 $bitSet = $bitSet->or(
                     $mask->and(
-                        $this->bitSet->unshift(abs($amount))
+                        $this->bitSet->rshift(abs($amount))
                     )
                 );
             } else {
                 $bitSet = $bitSet->or(
                     $mask->and(
-                        $this->bitSet->shift($amount)
+                        $this->bitSet->lshift($amount)
                     )
                 );
             }
@@ -191,13 +191,13 @@ abstract class BitSetBoard implements Board
             if ($amount < 0) {
                 $bitSet = $bitSet->or(
                     $mask->and(
-                        $this->bitSet->unshift(abs($amount))
+                        $this->bitSet->rshift(abs($amount))
                     )
                 );
             } else {
                 $bitSet = $bitSet->or(
                     $mask->and(
-                        $this->bitSet->shift($amount)
+                        $this->bitSet->lshift($amount)
                     )
                 );
             }
@@ -259,13 +259,13 @@ abstract class BitSetBoard implements Board
             if ($amount < 0) {
                 $bitSet = $bitSet->or(
                     $mask->and(
-                        $this->bitSet->unshift(abs($amount))
+                        $this->bitSet->rshift(abs($amount))
                     )
                 );
             } else {
                 $bitSet = $bitSet->or(
                     $mask->and(
-                        $this->bitSet->shift($amount)
+                        $this->bitSet->lshift($amount)
                     )
                 );
             }
@@ -375,40 +375,40 @@ abstract class BitSetBoard implements Board
             }
 
             if ($type & (self::PROMOTE_ZERO | self::PROMOTE_FOUR)) {
-                $p = $srcLayer->and($srcLayer->unshift(1));
-                $p = $p->and($p->unshift($srcLayerSize));
+                $p = $srcLayer->and($srcLayer->rshift(1));
+                $p = $p->and($p->rshift($srcLayerSize));
                 $promotedLayer = $promotedLayer->or($p);
             }
 
             if ($type & (self::PROMOTE_ONE | self::PROMOTE_THREE)) {
-                $p1 = $srcLayer->and($srcLayer->unshift(1));
-                $p1 = $p1->xor($p1->unshift($srcLayerSize));
-                $p2 = $srcLayer->xor($srcLayer->unshift(1));
-                $p2 = $p2->xor($p2->unshift($srcLayerSize));
+                $p1 = $srcLayer->and($srcLayer->rshift(1));
+                $p1 = $p1->xor($p1->rshift($srcLayerSize));
+                $p2 = $srcLayer->xor($srcLayer->rshift(1));
+                $p2 = $p2->xor($p2->rshift($srcLayerSize));
                 $promotedLayer = $promotedLayer->or($p1->and($p2));
             }
 
             if ($type & self::PROMOTE_TWO) {
-                $p1 = $srcLayer->xor($srcLayer->unshift(1));
-                $p1 = $p1->and($p1->unshift($srcLayerSize));
-                $p2 = $srcLayer->xor($srcLayer->unshift($srcLayerSize));
-                $p2 = $p2->and($p2->unshift(1));
+                $p1 = $srcLayer->xor($srcLayer->rshift(1));
+                $p1 = $p1->and($p1->rshift($srcLayerSize));
+                $p2 = $srcLayer->xor($srcLayer->rshift($srcLayerSize));
+                $p2 = $p2->and($p2->rshift(1));
                 $promotedLayer = $promotedLayer->or($p1)->or($p2);
             }
 
             if ($type & self::PROMOTE_MAJORITY) {
-                $p1 = $srcLayer->and($srcLayer->unshift(1));
-                $p1 = $p1->or($p1->unshift($srcLayerSize));
-                $p2 = $srcLayer->and($srcLayer->unshift($srcLayerSize));
-                $p2 = $p2->or($p2->unshift(1));
+                $p1 = $srcLayer->and($srcLayer->rshift(1));
+                $p1 = $p1->or($p1->rshift($srcLayerSize));
+                $p2 = $srcLayer->and($srcLayer->rshift($srcLayerSize));
+                $p2 = $p2->or($p2->rshift(1));
                 $promotedLayer = $promotedLayer->or($p1->and($p2));
             }
 
             if ($type & self::PROMOTE_HALF_OR_MORE) {
-                $p1 = $srcLayer->or($srcLayer->unshift(1));
-                $p1 = $p1->and($p1->unshift($srcLayerSize));
-                $p2 = $srcLayer->or($srcLayer->unshift($srcLayerSize));
-                $p2 = $p2->and($p2->unshift(1));
+                $p1 = $srcLayer->or($srcLayer->rshift(1));
+                $p1 = $p1->and($p1->rshift($srcLayerSize));
+                $p2 = $srcLayer->or($srcLayer->rshift($srcLayerSize));
+                $p2 = $p2->and($p2->rshift(1));
                 $promotedLayer = $promotedLayer->or($p1)->or($p2);
             }
 
@@ -418,14 +418,14 @@ abstract class BitSetBoard implements Board
                 if (!isset($rowMasks[$dstLayerSize][$i])) {
                     $rowMask = self::zeroBitSet($this->size)
                         ->set(...range(0, $dstLayerSize - 1))
-                        ->shift(self::layerShift($srcLayerSize))
-                        ->shift(($srcLayerSize) * $i);
+                        ->lshift(self::layerShift($srcLayerSize))
+                        ->lshift(($srcLayerSize) * $i);
                     $rowMasks[$dstLayerSize][$i] = $rowMask;
                 }
                 $rowMask = $rowMasks[$dstLayerSize][$i];
 
                 $promotedRow = $promotedLayer->and($rowMask);
-                $promotedRow = $promotedRow->unshift($dstLayerSize * $dstLayerSize + $i);
+                $promotedRow = $promotedRow->rshift($dstLayerSize * $dstLayerSize + $i);
                 $promotedBitSet = $promotedBitSet->or($promotedRow);
             }
         }
@@ -462,7 +462,7 @@ abstract class BitSetBoard implements Board
             for ($i = 0; $i < $j; $i++) {
                 $layerMask = $layerMask->set($i);
             }
-            $layerMask = $layerMask->shift(self::layerShift($layerSize));
+            $layerMask = $layerMask->lshift(self::layerShift($layerSize));
             $layerMasks[$size][$layerSize] = $layerMask;
         }
 
