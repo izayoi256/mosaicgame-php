@@ -13,6 +13,7 @@ namespace MosaicGame\Game\Move;
 use MosaicGame\Board\Board;
 use MosaicGame\Board\GMPBoard;
 use function array_filter;
+use function array_map;
 use function str_pad;
 
 final class GMPMove implements Move

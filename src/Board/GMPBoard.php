@@ -23,13 +23,13 @@ use function gmp_or;
 use function gmp_popcount;
 use function gmp_setbit;
 use function gmp_strval;
-use function gmp_testbit;
 use function gmp_xor;
 use function intdiv;
-use function iterator_to_array;
 use function range;
 use function sprintf;
 use function str_pad;
+use function str_split;
+use function strrev;
 use const STR_PAD_LEFT;
 
 final class GMPBoard implements Board
@@ -126,15 +126,15 @@ final class GMPBoard implements Board
 
     public function getIterator()
     {
-        yield from [];
-        for ($i = 0; $i < $this->bitSize; $i++) {
-            yield $i => gmp_testbit($this->gmp, $i);
-        }
+        yield from $this->toArray();
     }
 
     public function toArray()
     {
-        return iterator_to_array($this->getIterator());
+        return array_map(
+            'boolval',
+            str_split(strrev($this->toString())),
+        );
     }
 
     public function count(): int
@@ -432,6 +432,10 @@ final class GMPBoard implements Board
                 $srcLayer = gmp_and(gmp_com($this->gmp), $srcLayerMask);
             }
 
+            if ($srcLayer == 0) {
+                continue;
+            }
+
             if ($type & (self::PROMOTE_ZERO | self::PROMOTE_FOUR)) {
                 $p = gmp_and($srcLayer, $srcLayer >> 1);
                 $p = gmp_and($p, $p >> $srcLayerSize);
@@ -470,6 +474,10 @@ final class GMPBoard implements Board
                 $promotionLayer = gmp_or($promotionLayer, gmp_or($p1, $p2));
             }
 
+            if ($promotionLayer == 0) {
+                continue;
+            }
+
             for ($i = 0; $i < $dstLayerSize; $i++) {
 
                 static $rowMasks = [];
@@ -485,6 +493,11 @@ final class GMPBoard implements Board
                 $rowMask = $rowMasks[$dstLayerSize][$i];
 
                 $promotionRow = gmp_and($promotionLayer, $rowMask);
+
+                if ($promotionRow == 0) {
+                    continue;
+                }
+
                 $promotionRow = $promotionRow >> ($dstLayerSize ** 2 + $i);
                 $resultGmp = gmp_or($resultGmp, $promotionRow);
             }

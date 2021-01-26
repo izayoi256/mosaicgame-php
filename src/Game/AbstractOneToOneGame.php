@@ -169,21 +169,27 @@ abstract class AbstractOneToOneGame implements OneToOneGame
             &$this->firstBoard,
             &$this->secondBoard,
         ];
+        $majorityBoards = [];
 
         $playerBoard =& $boards[$movesMade % 2];
         $playerBoard = $playerBoard->or($move->toBoard($this->size));
 
-        $occupiedBoard = $this->occupiedBoard();
+        $vacantBoard = $this->vacantBoard();
+        $scaffoldedBoard = $this->scaffoldedBoard();
 
-        while (true) {
-            if ($this->isOver()) {
-                break;
-            }
+        while (!$this->isOver()) {
 
-            foreach ($boards as &$chainingBoard) {
-                $chain = $this->vacantBoard()->and($this->scaffoldedBoard())->and($chainingBoard->promoteMajority());
+            $chained = false;
+
+            foreach ($boards as $key => &$chainingBoard) {
+                $majorityBoard = $majorityBoards[$key] ?? ($majorityBoards[$key] = $chainingBoard->promoteMajority());
+                $chain = $vacantBoard->and($scaffoldedBoard)->and($majorityBoard);
+                $chainCount = $chain->count();
+                if (!$chainCount) {
+                    continue;
+                }
                 $vacancy = $this->piecesPerPlayer - $chainingBoard->count();
-                if ($chain->count() <= $vacancy) {
+                if ($chainCount <= $vacancy) {
                     $chainingBoard = $chainingBoard->or($chain);
                 } else {
                     $chainMoves = static::createMovesFromBoard($chain);
@@ -193,14 +199,16 @@ abstract class AbstractOneToOneGame implements OneToOneGame
                         $chainingBoard = $chainingBoard->or($chainMove->toBoard($this->size));
                     }
                 }
+
+                $chained = true;
+                $scaffoldedBoard = $this->scaffoldedBoard();
+                $vacantBoard = $this->vacantBoard();
+                unset($majorityBoards[$key]);
             }
 
-            $newOccupiedBoard = $this->occupiedBoard();
-            if ($occupiedBoard->equalsTo($newOccupiedBoard)) {
+            if (!$chained) {
                 break;
             }
-
-            $occupiedBoard = $newOccupiedBoard;
         }
     }
 
