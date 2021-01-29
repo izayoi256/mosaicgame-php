@@ -81,9 +81,10 @@ abstract class AbstractOneToOneGame implements OneToOneGame
 
     private static function fromSize(int $size): self
     {
+        $pieces = static::createFilledBoard($size)->count();
         return new static(
             $size,
-            intdiv(static::createFilledBoard($size)->count(), 2),
+            intdiv($pieces, 2) + ($pieces % 2),
             [],
             0,
             static::createEmptyBoard($size),
@@ -99,9 +100,10 @@ abstract class AbstractOneToOneGame implements OneToOneGame
 
     public static function fromSnapshot(int $size, array $moves, Board $firstBoard, Board $secondBoard, Board $neutralBoard)
     {
+        $pieces = static::createFilledBoard($size)->count();
         return new static(
             $size,
-            intdiv(static::createFilledBoard($size)->count(), 2),
+            intdiv($pieces, 2) + ($pieces % 2),
             $moves,
             0,
             $firstBoard,
