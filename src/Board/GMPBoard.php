@@ -15,15 +15,11 @@ use function abs;
 use function array_map;
 use function array_sum;
 use function assert;
-use function gmp_and;
-use function gmp_cmp;
-use function gmp_com;
 use function gmp_init;
-use function gmp_or;
 use function gmp_popcount;
+use function gmp_scan1;
 use function gmp_setbit;
 use function gmp_strval;
-use function gmp_xor;
 use function intdiv;
 use function range;
 use function sprintf;
@@ -64,7 +60,7 @@ final class GMPBoard implements Board
     private function applySizeMask(): void
     {
         if (gmp_scan1($this->gmp, $this->bitSize) !== -1) {
-            $this->gmp = gmp_and($this->gmp, self::boardMask($this->size));
+            $this->gmp &= self::boardMask($this->size);
         }
     }
 
@@ -172,21 +168,9 @@ final class GMPBoard implements Board
         $gmp = gmp_init(0);
         foreach ($masks as $amount => $mask) {
             if ($amount < 0) {
-                $gmp = gmp_or(
-                    $gmp,
-                    gmp_and(
-                        $mask,
-                        $this->gmp >> abs($amount),
-                    ),
-                );
+                $gmp |= ($mask & ($this->gmp >> abs($amount)));
             } else {
-                $gmp = gmp_or(
-                    $gmp,
-                    gmp_and(
-                        $mask,
-                        $this->gmp << $amount,
-                    ),
-                );
+                $gmp |= ($mask & ($this->gmp << $amount));
             }
         }
 
@@ -231,21 +215,9 @@ final class GMPBoard implements Board
         $gmp = gmp_init(0);
         foreach ($masks as $amount => $mask) {
             if ($amount < 0) {
-                $gmp = gmp_or(
-                    $gmp,
-                    gmp_and(
-                        $mask,
-                        $this->gmp >> abs($amount),
-                    ),
-                );
+                $gmp |= ($mask & ($this->gmp >> abs($amount)));
             } else {
-                $gmp = gmp_or(
-                    $gmp,
-                    gmp_and(
-                        $mask,
-                        $this->gmp << $amount,
-                    ),
-                );
+                $gmp |= ($mask & ($this->gmp << $amount));
             }
         }
 
@@ -306,21 +278,9 @@ final class GMPBoard implements Board
         $gmp = gmp_init(0);
         foreach ($masks as $amount => $mask) {
             if ($amount < 0) {
-                $gmp = gmp_or(
-                    $gmp,
-                    gmp_and(
-                        $mask,
-                        $this->gmp >> abs($amount),
-                    ),
-                );
+                $gmp |= ($mask & ($this->gmp >> abs($amount)));
             } else {
-                $gmp = gmp_or(
-                    $gmp,
-                    gmp_and(
-                        $mask,
-                        $this->gmp << $amount,
-                    ),
-                );
+                $gmp |= ($mask & ($this->gmp << $amount));
             }
         }
 
@@ -348,7 +308,7 @@ final class GMPBoard implements Board
     public function flip(): Board
     {
         $clone = clone $this;
-        $clone->gmp = gmp_com($this->gmp);
+        $clone->gmp = ~$this->gmp;
         $clone->applySizeMask();
         return $clone;
     }
@@ -356,7 +316,7 @@ final class GMPBoard implements Board
     public function and(Board $other): Board
     {
         $clone = clone $this;
-        $clone->gmp = gmp_and($this->gmp, ($other instanceof self)
+        $clone->gmp &= (($other instanceof self)
             ? $other->gmp
             : gmp_init($other->toString(), 2));
         $clone->applySizeMask();
@@ -366,7 +326,7 @@ final class GMPBoard implements Board
     public function or(Board $other): Board
     {
         $clone = clone $this;
-        $clone->gmp = gmp_or($this->gmp, ($other instanceof self)
+        $clone->gmp |= (($other instanceof self)
             ? $other->gmp
             : gmp_init($other->toString(), 2));
         $clone->applySizeMask();
@@ -376,7 +336,7 @@ final class GMPBoard implements Board
     public function xor(Board $other): Board
     {
         $clone = clone $this;
-        $clone->gmp = gmp_xor($this->gmp, ($other instanceof self)
+        $clone->gmp ^= (($other instanceof self)
             ? $other->gmp
             : gmp_init($other->toString(), 2));
         $clone->applySizeMask();
@@ -425,11 +385,11 @@ final class GMPBoard implements Board
         for ($srcLayerSize = $this->size; $srcLayerSize > 1; $srcLayerSize--) {
             $dstLayerSize = $srcLayerSize - 1;
             $srcLayerMask = self::layerMask($srcLayerSize);
-            $srcLayer = gmp_and($this->gmp, $srcLayerMask);
+            $srcLayer = $this->gmp & $srcLayerMask;
             $promotionLayer = gmp_init(0);
 
             if ($type & (self::PROMOTE_ZERO | self::PROMOTE_ONE)) {
-                $srcLayer = gmp_and(gmp_com($this->gmp), $srcLayerMask);
+                $srcLayer = ~$this->gmp &  $srcLayerMask;
             }
 
             if ($srcLayer == 0) {
@@ -437,41 +397,41 @@ final class GMPBoard implements Board
             }
 
             if ($type & (self::PROMOTE_ZERO | self::PROMOTE_FOUR)) {
-                $p = gmp_and($srcLayer, $srcLayer >> 1);
-                $p = gmp_and($p, $p >> $srcLayerSize);
-                $promotionLayer = gmp_or($promotionLayer, $p);
+                $p = $srcLayer & ($srcLayer >> 1);
+                $p &= ($p >> $srcLayerSize);
+                $promotionLayer |= $p;
             }
 
             if ($type & (self::PROMOTE_ONE | self::PROMOTE_THREE)) {
-                $p1 = gmp_and($srcLayer, $srcLayer >> 1);
-                $p1 = gmp_xor($p1, $p1 >> $srcLayerSize);
-                $p2 = gmp_xor($srcLayer, $srcLayer >> 1);
-                $p2 = gmp_xor($p2, $p2 >> $srcLayerSize);
-                $promotionLayer = gmp_or($promotionLayer, gmp_and($p1, $p2));
+                $p1 = $srcLayer & ($srcLayer >> 1);
+                $p1 ^= ($p1 >> $srcLayerSize);
+                $p2 = $srcLayer ^ ($srcLayer >> 1);
+                $p2 ^= ($p2 >> $srcLayerSize);
+                $promotionLayer |= ($p1 & $p2);
             }
 
             if ($type & self::PROMOTE_TWO) {
-                $p1 = gmp_xor($srcLayer, $srcLayer >> 1);
-                $p1 = gmp_and($p1, $p1 >> $srcLayerSize);
-                $p2 = gmp_xor($srcLayer, $srcLayer >> $srcLayerSize);
-                $p2 = gmp_and($p2, $p2 >> 1);
-                $promotionLayer = gmp_or($promotionLayer, gmp_or($p1, $p2));
+                $p1 = $srcLayer ^ ($srcLayer >> 1);
+                $p1 &= ($p1 >> $srcLayerSize);
+                $p2 = $srcLayer ^ ($srcLayer >> $srcLayerSize);
+                $p2 &= ($p2 >> 1);
+                $promotionLayer |= ($p1 | $p2);
             }
 
             if ($type & self::PROMOTE_MAJORITY) {
-                $p1 = gmp_and($srcLayer, $srcLayer >> 1);
-                $p1 = gmp_or($p1, $p1 >> $srcLayerSize);
-                $p2 = gmp_and($srcLayer, $srcLayer >> $srcLayerSize);
-                $p2 = gmp_or($p2, $p2 >> 1);
-                $promotionLayer = gmp_or($promotionLayer, gmp_and($p1, $p2));
+                $p1 = $srcLayer & ($srcLayer >> 1);
+                $p1 |= ($p1 >> $srcLayerSize);
+                $p2 = $srcLayer & ($srcLayer >> $srcLayerSize);
+                $p2 |= ($p2 >> 1);
+                $promotionLayer |= ($p1 & $p2);
             }
 
             if ($type & self::PROMOTE_HALF_OR_MORE) {
-                $p1 = gmp_or($srcLayer, $srcLayer >> 1);
-                $p1 = gmp_and($p1, $p1 >> $srcLayerSize);
-                $p2 = gmp_or($srcLayer, $srcLayer >> $srcLayerSize);
-                $p2 = gmp_and($p2, $p2 >> 1);
-                $promotionLayer = gmp_or($promotionLayer, gmp_or($p1, $p2));
+                $p1 = $srcLayer | ($srcLayer >> 1);
+                $p1 &= ($p1 >> $srcLayerSize);
+                $p2 = $srcLayer | ($srcLayer >> $srcLayerSize);
+                $p2 &= ($p2 >> 1);
+                $promotionLayer |= ($p1 | $p2);
             }
 
             if ($promotionLayer == 0) {
@@ -492,14 +452,14 @@ final class GMPBoard implements Board
                 }
                 $rowMask = $rowMasks[$dstLayerSize][$i];
 
-                $promotionRow = gmp_and($promotionLayer, $rowMask);
+                $promotionRow = $promotionLayer & $rowMask;
 
                 if ($promotionRow == 0) {
                     continue;
                 }
 
                 $promotionRow = $promotionRow >> ($dstLayerSize ** 2 + $i);
-                $resultGmp = gmp_or($resultGmp, $promotionRow);
+                $resultGmp |= $promotionRow;
             }
         }
 
@@ -512,7 +472,7 @@ final class GMPBoard implements Board
     public function equalsTo(Board $other): bool
     {
         return ($other instanceof self)
-            ? gmp_cmp($this->gmp, $other->gmp) === 0
+            ? $this->gmp == $other->gmp
             : $this->toString() === $other->toString();
     }
 
@@ -556,7 +516,7 @@ final class GMPBoard implements Board
         if (!isset($boardMasks[$size])) {
             $boardMask = gmp_init(0);
             for ($i = 1; $i <= $size; $i++) {
-                $boardMask = gmp_or($boardMask, self::layerMask($i));
+                $boardMask |= self::layerMask($i);
             }
             $boardMasks[$size] = $boardMask;
         }
