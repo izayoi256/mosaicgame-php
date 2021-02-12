@@ -10,146 +10,20 @@
 
 namespace MosaicGame\Test\Game;
 
-use MosaicGame\Exceptions;
-use MosaicGame\Game\Game;
 use MosaicGame\Game\GMPOneToOneGame;
 use MosaicGame\Game\Move\GMPMove;
 use MosaicGame\Game\Move\Move;
-use PHPUnit\Framework\TestCase;
-use function array_map;
+use MosaicGame\Game\OneToOneGame;
 
-final class GMPOneToOneGameTest extends TestCase
+final class GMPOneToOneGameTest extends OneToOneGameTest
 {
-    private function makeMove(Game $game, int ...$moveOffsets): void
+    protected static function createGame(int $size): OneToOneGame
     {
-        foreach ($moveOffsets as $moveOffset) {
-            $game->makeMove(GMPMove::fromOffset($moveOffset));
-        }
+        return GMPOneToOneGame::create($size);
     }
 
-    private function movesToOffsets(array $moves): array
+    protected static function moveFromOffset(int $offset): Move
     {
-        return array_map(static function (Move $move) {
-            return $move->toOffset();
-        }, $moves);
-    }
-
-    public function testCreate()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->assertSame('00000000000000', $game->firstBoard()->toString());
-        $this->assertSame('00000000000000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-    }
-
-    public function testMakeMove()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->assertSame('00000000000000', $game->firstBoard()->toString());
-        $this->assertSame('00000000000000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-
-        $this->makeMove($game, 13);
-        $this->assertSame('10000000000000', $game->firstBoard()->toString());
-        $this->assertSame('00000000000000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-
-        $this->makeMove($game, 12);
-        $this->assertSame('10000000000000', $game->firstBoard()->toString());
-        $this->assertSame('01000000000000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-
-        $this->makeMove($game, 8);
-        $this->assertSame('10000100000000', $game->firstBoard()->toString());
-        $this->assertSame('01000000000000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-    }
-
-    public function testMakeMoveWithIllegalMove()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->makeMove($game, 13, 12, 8);
-        $this->assertFalse($game->isLegalMove(GMPMove::fromOffset(9)));
-        $this->expectException(Exceptions\CouldNotMakeMoveException::class);
-        $this->makeMove($game, 9);
-    }
-
-    public function testMakeMoveThenChain()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->makeMove($game, 13, 5, 12, 7, 10);
-        $this->assertSame('11010000010000', $game->firstBoard()->toString());
-        $this->assertSame('00000010100000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-    }
-
-    public function testLegalMoves()
-    {
-        $game = GMPOneToOneGame::create(3);
-
-        $this->assertSame([
-            5,
-            6,
-            7,
-            8,
-            10,
-            11,
-            12,
-            13,
-        ], $this->movesToOffsets($game->legalMoves()));
-    }
-
-    public function testUndo()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->makeMove($game, 13, 5, 12, 7, 10);
-        $game->undo();
-        $this->assertSame('11000000000000', $game->firstBoard()->toString());
-        $this->assertSame('00000010100000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-
-        $this->assertSame([13, 5, 12, 7], $this->movesToOffsets($game->moves()));
-        $this->assertSame(4, $game->movesMade());
-    }
-
-    public function testNotUndoable()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->makeMove($game, 13, 5, 12, 7, 10);
-        $game->undo();
-        $game->undo();
-        $game->undo();
-        $game->undo();
-        $game->undo();
-        $this->expectException(Exceptions\CouldNotUndoException::class);
-        $game->undo();
-    }
-
-    public function testRedo()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->makeMove($game, 13, 5, 12, 7, 10);
-        $game->undo();
-        $game->undo();
-        $this->assertSame('11000000000000', $game->firstBoard()->toString());
-        $this->assertSame('00000000100000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-        $game->redo();
-        $this->assertSame('11000000000000', $game->firstBoard()->toString());
-        $this->assertSame('00000010100000', $game->secondBoard()->toString());
-        $this->assertSame('00001000000000', $game->neutralBoard()->toString());
-
-        $this->assertSame([13, 5, 12, 7], $this->movesToOffsets($game->moves()));
-        $this->assertSame(4, $game->movesMade());
-    }
-
-    public function testNotRedoable()
-    {
-        $game = GMPOneToOneGame::create(3);
-        $this->makeMove($game, 13, 5, 12, 7, 10);
-        $game->undo();
-        $game->redo();
-        $this->expectException(Exceptions\CouldNotRedoException::class);
-        $game->redo();
+        return GMPMove::fromOffset($offset);
     }
 }

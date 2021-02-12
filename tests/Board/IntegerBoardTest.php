@@ -12,11 +12,11 @@ namespace MosaicGame\Test\Board;
 
 use AssertionError;
 use MosaicGame\Board\Board;
-use MosaicGame\Board\GMPBoard;
+use MosaicGame\Board\IntegerBoard;
 use function assert_options;
 use const ASSERT_EXCEPTION;
 
-final class GMPBoardTest extends BoardTest
+final class IntegerBoardTest extends BoardTest
 {
     private $originalAssertException;
 
@@ -35,48 +35,48 @@ final class GMPBoardTest extends BoardTest
 
     protected static function boardFromString(int $size, string $string): Board
     {
-        return GMPBoard::fromString($size, $string);
+        return IntegerBoard::fromString($size, $string);
     }
 
     public function testEmptyBoard()
     {
-        $this->assertSame('0', GMPBoard::emptyBoard(1)->toString());
-        $this->assertSame('00000', GMPBoard::emptyBoard(2)->toString());
-        $this->assertSame('00000000000000', GMPBoard::emptyBoard(3)->toString());
+        $this->assertSame('0', IntegerBoard::emptyBoard(1)->toString());
+        $this->assertSame('00000', IntegerBoard::emptyBoard(2)->toString());
+        $this->assertSame('00000000000000', IntegerBoard::emptyBoard(3)->toString());
     }
 
     public function testTooMuchSize()
     {
-        GMPBoard::emptyBoard(7);
+        IntegerBoard::emptyBoard(5);
         $this->expectException(AssertionError::class);
-        GMPBoard::emptyBoard(8);
+        IntegerBoard::emptyBoard(6);
     }
 
     public function testTooLessSize()
     {
-        GMPBoard::emptyBoard(1);
+        IntegerBoard::emptyBoard(1);
         $this->expectException(AssertionError::class);
-        GMPBoard::emptyBoard(0);
+        IntegerBoard::emptyBoard(0);
     }
 
     public function testGroundBoard()
     {
-        $this->assertSame('1', GMPBoard::groundBoard(1)->toString());
-        $this->assertSame('11110', GMPBoard::groundBoard(2)->toString());
-        $this->assertSame('11111111100000', GMPBoard::groundBoard(3)->toString());
+        $this->assertSame('1', IntegerBoard::groundBoard(1)->toString());
+        $this->assertSame('11110', IntegerBoard::groundBoard(2)->toString());
+        $this->assertSame('11111111100000', IntegerBoard::groundBoard(3)->toString());
     }
 
     public function testNeutralBoard()
     {
-        $this->assertSame('1', GMPBoard::neutralBoard(1)->toString());
-        $this->assertSame('00000', GMPBoard::neutralBoard(2)->toString());
-        $this->assertSame('00001000000000', GMPBoard::neutralBoard(3)->toString());
+        $this->assertSame('1', IntegerBoard::neutralBoard(1)->toString());
+        $this->assertSame('00000', IntegerBoard::neutralBoard(2)->toString());
+        $this->assertSame('00001000000000', IntegerBoard::neutralBoard(3)->toString());
     }
 
     public function testFilledBoard()
     {
-        $this->assertSame('1', GMPBoard::filledBoard(1)->toString());
-        $this->assertSame('11111', GMPBoard::filledBoard(2)->toString());
-        $this->assertSame('11111111111111', GMPBoard::filledBoard(3)->toString());
+        $this->assertSame('1', IntegerBoard::filledBoard(1)->toString());
+        $this->assertSame('11111', IntegerBoard::filledBoard(2)->toString());
+        $this->assertSame('11111111111111', IntegerBoard::filledBoard(3)->toString());
     }
 }
