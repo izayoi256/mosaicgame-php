@@ -26,11 +26,11 @@ abstract class AbstractOneToOneGame implements OneToOneGame
     /** @var int */
     private $size;
 
-    /** @var Board */
-    private $firstBoard;
+    /** @var Board[] */
+    private $firstBoards;
 
-    /** @var Board */
-    private $secondBoard;
+    /** @var Board[] */
+    private $secondBoards;
 
     /** @var Board */
     private $neutralBoard;
@@ -44,22 +44,15 @@ abstract class AbstractOneToOneGame implements OneToOneGame
     /** @var int */
     private $piecesPerPlayer;
 
-    private function __construct(int $size, int $piecesPerPlayer, array $moves, int $undoCount, Board $firstBoard, Board $secondBoard, Board $neutralBoard)
+    private function __construct(int $size, int $piecesPerPlayer, array $moves, int $undoCount, array $firstBoards, array $secondBoards, Board $neutralBoard)
     {
         $this->size = $size;
         $this->piecesPerPlayer = $piecesPerPlayer;
         $this->moves = $moves;
         $this->undoCount = $undoCount;
-        $this->firstBoard = $firstBoard;
-        $this->secondBoard = $secondBoard;
+        $this->firstBoards = $firstBoards;
+        $this->secondBoards = $secondBoards;
         $this->neutralBoard = $neutralBoard;
-    }
-
-    private function resetBoard(): void
-    {
-        $this->firstBoard = static::createEmptyBoard($this->size);
-        $this->secondBoard = static::createEmptyBoard($this->size);
-        $this->neutralBoard = static::createNeutralBoard($this->size);
     }
 
     abstract protected static function createEmptyBoard(int $size): Board;
@@ -70,15 +63,6 @@ abstract class AbstractOneToOneGame implements OneToOneGame
 
     abstract protected static function createMovesFromBoard(Board $board): array;
 
-    private function replay(): void
-    {
-        $this->resetBoard();
-        $movesMade = 0;
-        foreach ($this->moves() as $move) {
-            $this->handleMove($move, $movesMade++);
-        }
-    }
-
     private static function fromSize(int $size): self
     {
         return new static(
@@ -86,8 +70,8 @@ abstract class AbstractOneToOneGame implements OneToOneGame
             intdiv(static::createFilledBoard($size)->count(), 2),
             [],
             0,
-            static::createEmptyBoard($size),
-            static::createEmptyBoard($size),
+            [static::createEmptyBoard($size)],
+            [static::createEmptyBoard($size)],
             static::createNeutralBoard($size),
         );
     }
@@ -97,15 +81,15 @@ abstract class AbstractOneToOneGame implements OneToOneGame
         return self::fromSize($size);
     }
 
-    public static function fromSnapshot(int $size, array $moves, Board $firstBoard, Board $secondBoard, Board $neutralBoard)
+    public static function fromSnapshot(int $size, array $moves, array $firstBoards, array $secondBoards, Board $neutralBoard)
     {
         return new static(
             $size,
             intdiv(static::createFilledBoard($size)->count(), 2),
             $moves,
             0,
-            $firstBoard,
-            $secondBoard,
+            $firstBoards,
+            $secondBoards,
             $neutralBoard,
         );
     }
@@ -122,12 +106,22 @@ abstract class AbstractOneToOneGame implements OneToOneGame
 
     public function firstBoard(): Board
     {
-        return $this->firstBoard;
+        return $this->firstBoards[$this->movesMade()];
+    }
+
+    private function firstBoards(): array
+    {
+        return array_slice($this->firstBoards, 0, count($this->firstBoards) - $this->undoCount);
     }
 
     public function secondBoard(): Board
     {
-        return $this->secondBoard;
+        return $this->secondBoards[$this->movesMade()];
+    }
+
+    private function secondBoards(): array
+    {
+        return array_slice($this->secondBoards, 0, count($this->secondBoards) - $this->undoCount);
     }
 
     public function neutralBoard(): Board
@@ -137,7 +131,7 @@ abstract class AbstractOneToOneGame implements OneToOneGame
 
     protected function occupiedBoard(): Board
     {
-        return $this->firstBoard->or($this->secondBoard)->or($this->neutralBoard);
+        return $this->firstBoard()->or($this->secondBoard())->or($this->neutralBoard);
     }
 
     public function legalMoves(): array
@@ -155,24 +149,30 @@ abstract class AbstractOneToOneGame implements OneToOneGame
             throw CouldNotMakeMoveException::illegalMove($move);
         }
 
-        $this->handleMove($move, $this->movesMade());
-
+        $this->firstBoards = $this->firstBoards();
+        $this->secondBoards = $this->secondBoards();
         $this->moves = $this->moves();
-        $this->moves[] = $move;
         $this->undoCount = 0;
+
+        $this->handleMove($move);
     }
 
-    private function handleMove(Move $move, int $movesMade): void
+    private function handleMove(Move $move): void
     {
+        $movesMade = $this->movesMade();
+        $this->firstBoards[$movesMade + 1] = $this->firstBoards[$movesMade];
+        $this->secondBoards[$movesMade + 1] = $this->secondBoards[$movesMade];
+
         /** @var Board[] $boards */
         $boards = [
-            &$this->firstBoard,
-            &$this->secondBoard,
+            &$this->firstBoards[$movesMade + 1],
+            &$this->secondBoards[$movesMade + 1],
         ];
         $majorityBoards = [];
 
         $playerBoard =& $boards[$movesMade % 2];
         $playerBoard = $playerBoard->or($move->toBoard($this->size));
+        $this->moves[] = $move;
 
         $vacantBoard = $this->vacantBoard();
         $scaffoldedBoard = $this->scaffoldedBoard();
@@ -219,12 +219,12 @@ abstract class AbstractOneToOneGame implements OneToOneGame
 
     public function firstWins(): bool
     {
-        return $this->piecesPerPlayer <= $this->firstBoard->count();
+        return $this->piecesPerPlayer <= $this->firstBoard()->count();
     }
 
     public function secondWins(): bool
     {
-        return $this->piecesPerPlayer <= $this->secondBoard->count();
+        return $this->piecesPerPlayer <= $this->secondBoard()->count();
     }
 
     public function isFirstTurn(): bool
@@ -254,7 +254,6 @@ abstract class AbstractOneToOneGame implements OneToOneGame
         }
 
         $this->undoCount++;
-        $this->replay();
     }
 
     public function redo(): void
@@ -264,7 +263,6 @@ abstract class AbstractOneToOneGame implements OneToOneGame
         }
 
         $this->undoCount--;
-        $this->replay();
     }
 
     public function isUndoable(): bool
