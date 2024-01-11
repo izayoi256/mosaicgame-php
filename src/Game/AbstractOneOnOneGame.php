@@ -19,7 +19,7 @@ use function array_slice;
 use function count;
 use function intdiv;
 
-abstract class AbstractOneToOneGame implements OneToOneGame
+abstract class AbstractOneOnOneGame implements OneOnOneGame
 {
     use GameTrait;
 

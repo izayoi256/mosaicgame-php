@@ -11,35 +11,35 @@
 namespace MosaicGame\Game;
 
 use MosaicGame\Board\Board;
-use MosaicGame\Board\IntegerBoard;
-use MosaicGame\Game\Move\IntegerMove;
+use MosaicGame\Board\GMPBoard;
+use MosaicGame\Game\Move\GMPMove;
 
-final class IntegerOneToOneGame extends AbstractOneToOneGame
+final class GMPOneOnOneGame extends AbstractOneOnOneGame
 {
     protected static function createEmptyBoard(int $size): Board
     {
-        return IntegerBoard::emptyBoard($size);
+        return GMPBoard::emptyBoard($size);
     }
 
     protected static function createNeutralBoard(int $size): Board
     {
-        return IntegerBoard::neutralBoard($size);
+        return GMPBoard::neutralBoard($size);
     }
 
     protected static function createFilledBoard(int $size): Board
     {
-        return IntegerBoard::filledBoard($size);
+        return GMPBoard::filledBoard($size);
     }
 
     protected static function createMovesFromBoard(Board $board): array
     {
-        return IntegerMove::fromBoard($board);
+        return GMPMove::fromBoard($board);
     }
 
     protected function groundBoard(): Board
     {
         static $groundBoards = [];
         $size = $this->size();
-        return $groundBoards[$size] ?? ($groundBoards[$size] = IntegerBoard::groundBoard($size));
+        return $groundBoards[$size] ?? ($groundBoards[$size] = GMPBoard::groundBoard($size));
     }
 }

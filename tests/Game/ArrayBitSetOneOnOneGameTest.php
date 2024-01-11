@@ -10,20 +10,20 @@
 
 namespace MosaicGame\Test\Game;
 
-use MosaicGame\Game\IntegerOneToOneGame;
-use MosaicGame\Game\Move\IntegerMove;
+use MosaicGame\Game\ArrayBitSetOneOnOneGame;
+use MosaicGame\Game\Move\ArrayBitSetMove;
 use MosaicGame\Game\Move\Move;
-use MosaicGame\Game\OneToOneGame;
+use MosaicGame\Game\OneOnOneGame;
 
-final class IntegerOneToOneGameTest extends OneToOneGameTest
+final class ArrayBitSetOneOnOneGameTest extends OneOnOneGameTest
 {
-    protected static function createGame(int $size): OneToOneGame
+    protected static function createGame(int $size): OneOnOneGame
     {
-        return IntegerOneToOneGame::create($size);
+        return ArrayBitSetOneOnOneGame::create($size);
     }
 
     protected static function moveFromOffset(int $offset): Move
     {
-        return IntegerMove::fromOffset($offset);
+        return ArrayBitSetMove::fromOffset($offset);
     }
 }

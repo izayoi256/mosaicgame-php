@@ -13,13 +13,13 @@ namespace MosaicGame\Test\Game;
 use MosaicGame\Exceptions;
 use MosaicGame\Game\Game;
 use MosaicGame\Game\Move\Move;
-use MosaicGame\Game\OneToOneGame;
+use MosaicGame\Game\OneOnOneGame;
 use PHPUnit\Framework\TestCase;
 use function array_map;
 
-abstract class OneToOneGameTest extends TestCase
+abstract class OneOnOneGameTest extends TestCase
 {
-    abstract protected static function createGame(int $size): OneToOneGame;
+    abstract protected static function createGame(int $size): OneOnOneGame;
     
     abstract protected static function moveFromOffset(int $offset): Move;
 

@@ -10,37 +10,36 @@
 
 namespace MosaicGame\Game;
 
-use MosaicGame\Board\ArrayBitSetBoard;
 use MosaicGame\Board\Board;
-use MosaicGame\Game\Move\ArrayBitSetMove;
+use MosaicGame\Board\IntegerBoard;
+use MosaicGame\Game\Move\IntegerMove;
 
-final class ArrayBitSetOneToOneGame extends AbstractOneToOneGame
+final class IntegerOneOnOneGame extends AbstractOneOnOneGame
 {
     protected static function createEmptyBoard(int $size): Board
     {
-        return ArrayBitSetBoard::emptyBoard($size);
+        return IntegerBoard::emptyBoard($size);
     }
 
     protected static function createNeutralBoard(int $size): Board
     {
-        return ArrayBitSetBoard::neutralBoard($size);
+        return IntegerBoard::neutralBoard($size);
     }
 
     protected static function createFilledBoard(int $size): Board
     {
-        return ArrayBitSetBoard::filledBoard($size);
+        return IntegerBoard::filledBoard($size);
     }
 
     protected static function createMovesFromBoard(Board $board): array
     {
-        return ArrayBitSetMove::fromBoard($board);
+        return IntegerMove::fromBoard($board);
     }
 
     protected function groundBoard(): Board
     {
         static $groundBoards = [];
         $size = $this->size();
-        $groundBoard = $groundBoards[$size] ?? ($groundBoards[$size] = ArrayBitSetBoard::groundBoard($size));
-        return $groundBoard;
+        return $groundBoards[$size] ?? ($groundBoards[$size] = IntegerBoard::groundBoard($size));
     }
 }

@@ -12,7 +12,7 @@ namespace MosaicGame\Game;
 
 use MosaicGame\Board\Board;
 
-interface TwoToTwoGame extends Game
+interface TwoOnTwoGame extends Game
 {
     public function size(): int;
 
