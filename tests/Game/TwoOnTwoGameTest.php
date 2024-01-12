@@ -45,6 +45,20 @@ abstract class TwoOnTwoGameTest extends TestCase
         $this->assertSame(35, static::createGame(7)->piecesPerPlayer());
     }
 
+    public function testPieces()
+    {
+        $game = static::createGame(4);
+        static::makeMove($game, 28, 25, 29, 14, 24, 21, 20, 23, 27, 15, 16);
+        $this->assertSame(5, $game->firstPlacedPieces());
+        $this->assertSame(4, $game->secondPlacedPieces());
+        $this->assertSame(3, $game->thirdPlacedPieces());
+        $this->assertSame(2, $game->fourthPlacedPieces());
+        $this->assertSame(3, $game->firstRemainingPieces());
+        $this->assertSame(4, $game->secondRemainingPieces());
+        $this->assertSame(5, $game->thirdRemainingPieces());
+        $this->assertSame(6, $game->fourthRemainingPieces());
+    }
+
     public function testCreate()
     {
         $game = static::createGame(3);
