@@ -82,9 +82,11 @@ abstract class AbstractTwoOnTwoGame implements TwoOnTwoGame
 
     private static function fromSize(int $size): self
     {
+        $neutralBoard = static::createNeutralBoard($size);
+        $piecesPerPlayer = (int)\round($neutralBoard->flip()->count() / 4);
         return new static(
             $size,
-            \intdiv(static::createFilledBoard($size)->count(), 4),
+            $piecesPerPlayer,
             [],
             0,
             [0],
@@ -111,9 +113,10 @@ abstract class AbstractTwoOnTwoGame implements TwoOnTwoGame
         array $fourthBoards,
         Board $neutralBoard
     ) {
+        $piecesPerPlayer = (int)\round($neutralBoard->flip()->count() / 4);
         return new static(
             $size,
-            \intdiv(static::createFilledBoard($size)->count(), 4),
+            $piecesPerPlayer,
             $moves,
             0,
             $playerIndexes,
@@ -133,6 +136,46 @@ abstract class AbstractTwoOnTwoGame implements TwoOnTwoGame
     public function piecesPerPlayer(): int
     {
         return $this->piecesPerPlayer;
+    }
+
+    public function firstRemainingPieces(): int
+    {
+        return $this->piecesPerPlayer - $this->firstPlacedPieces();
+    }
+
+    public function secondRemainingPieces(): int
+    {
+        return $this->piecesPerPlayer - $this->secondPlacedPieces();
+    }
+
+    public function thirdRemainingPieces(): int
+    {
+        return $this->piecesPerPlayer - $this->thirdPlacedPieces();
+    }
+
+    public function fourthRemainingPieces(): int
+    {
+        return $this->piecesPerPlayer - $this->fourthPlacedPieces();
+    }
+
+    public function firstPlacedPieces(): int
+    {
+        return $this->firstBoard()->count();
+    }
+
+    public function secondPlacedPieces(): int
+    {
+        return $this->secondBoard()->count();
+    }
+
+    public function thirdPlacedPieces(): int
+    {
+        return $this->thirdBoard()->count();
+    }
+
+    public function fourthPlacedPieces(): int
+    {
+        return $this->fourthBoard()->count();
     }
 
     public function firstBoard(): Board
@@ -294,14 +337,12 @@ abstract class AbstractTwoOnTwoGame implements TwoOnTwoGame
 
     public function firstAndThirdWins(): bool
     {
-        return $this->piecesPerPlayer <= $this->firstBoard()->count() &&
-            $this->piecesPerPlayer <= $this->thirdBoard()->count();
+        return $this->firstRemainingPieces() === 0 && $this->thirdRemainingPieces() === 0;
     }
 
     public function secondAndFourthWins(): bool
     {
-        return $this->piecesPerPlayer <= $this->secondBoard()->count() &&
-            $this->piecesPerPlayer <= $this->fourthBoard()->count();
+        return $this->secondRemainingPieces() === 0 && $this->fourthRemainingPieces() === 0;
     }
 
     private function playerIndexes(): array

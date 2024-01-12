@@ -16,6 +16,24 @@ interface TwoOnTwoGame extends Game
 {
     public function size(): int;
 
+    public function piecesPerPlayer(): int;
+
+    public function firstRemainingPieces(): int;
+
+    public function secondRemainingPieces(): int;
+
+    public function thirdRemainingPieces(): int;
+
+    public function fourthRemainingPieces(): int;
+
+    public function firstPlacedPieces(): int;
+
+    public function secondPlacedPieces(): int;
+
+    public function thirdPlacedPieces(): int;
+
+    public function fourthPlacedPieces(): int;
+
     public function firstBoard(): Board;
 
     public function secondBoard(): Board;

@@ -26,4 +26,11 @@ final class IntegerTwoOnTwoGameTest extends TwoOnTwoGameTest
     {
         return ArrayBitSetMove::fromOffset($offset);
     }
+
+    public function testPiecesPerPlayer()
+    {
+        $this->assertSame(3, static::createGame(3)->piecesPerPlayer());
+        $this->assertSame(8, static::createGame(4)->piecesPerPlayer());
+        $this->assertSame(14, static::createGame(5)->piecesPerPlayer());
+    }
 }

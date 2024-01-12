@@ -45,6 +45,15 @@ abstract class OneOnOneGameTest extends TestCase
         $this->assertSame('00001000000000', $game->neutralBoard()->toString());
     }
 
+    public function testPiecesPerPlayer()
+    {
+        $this->assertSame(7, static::createGame(3)->piecesPerPlayer());
+        $this->assertSame(15, static::createGame(4)->piecesPerPlayer());
+        $this->assertSame(27, static::createGame(5)->piecesPerPlayer());
+        $this->assertSame(46, static::createGame(6)->piecesPerPlayer());
+        $this->assertSame(70, static::createGame(7)->piecesPerPlayer());
+    }
+
     public function testMakeMove()
     {
         $game = static::createGame(3);

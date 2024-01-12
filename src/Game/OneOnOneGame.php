@@ -18,6 +18,14 @@ interface OneOnOneGame extends Game
 
     public function piecesPerPlayer(): int;
 
+    public function firstRemainingPieces(): int;
+
+    public function secondRemainingPieces(): int;
+
+    public function firstPlacedPieces(): int;
+
+    public function secondPlacedPieces(): int;
+
     public function firstBoard(): Board;
 
     public function secondBoard(): Board;

@@ -17,7 +17,6 @@ use MosaicGame\Game\Move\Move;
 use function array_shift;
 use function array_slice;
 use function count;
-use function intdiv;
 
 abstract class AbstractOneOnOneGame implements OneOnOneGame
 {
@@ -65,14 +64,16 @@ abstract class AbstractOneOnOneGame implements OneOnOneGame
 
     private static function fromSize(int $size): self
     {
+        $neutralBoard = static::createNeutralBoard($size);
+        $piecesPerPlayer = (int)\round($neutralBoard->flip()->count() / 2);
         return new static(
             $size,
-            intdiv(static::createFilledBoard($size)->count(), 2),
+            $piecesPerPlayer,
             [],
             0,
             [static::createEmptyBoard($size)],
             [static::createEmptyBoard($size)],
-            static::createNeutralBoard($size),
+            $neutralBoard,
         );
     }
 
@@ -83,9 +84,10 @@ abstract class AbstractOneOnOneGame implements OneOnOneGame
 
     public static function fromSnapshot(int $size, array $moves, array $firstBoards, array $secondBoards, Board $neutralBoard)
     {
+        $piecesPerPlayer = (int)\round($neutralBoard->flip()->count() / 2);
         return new static(
             $size,
-            intdiv(static::createFilledBoard($size)->count(), 2),
+            $piecesPerPlayer,
             $moves,
             0,
             $firstBoards,
@@ -102,6 +104,26 @@ abstract class AbstractOneOnOneGame implements OneOnOneGame
     public function piecesPerPlayer(): int
     {
         return $this->piecesPerPlayer;
+    }
+
+    public function firstRemainingPieces(): int
+    {
+        return $this->piecesPerPlayer - $this->firstPlacedPieces();
+    }
+
+    public function secondRemainingPieces(): int
+    {
+        return $this->piecesPerPlayer - $this->secondPlacedPieces();
+    }
+
+    public function firstPlacedPieces(): int
+    {
+        return $this->firstBoard()->count();
+    }
+
+    public function secondPlacedPieces(): int
+    {
+        return $this->secondBoard()->count();
     }
 
     public function firstBoard(): Board
@@ -219,12 +241,12 @@ abstract class AbstractOneOnOneGame implements OneOnOneGame
 
     public function firstWins(): bool
     {
-        return $this->piecesPerPlayer <= $this->firstBoard()->count();
+        return $this->firstRemainingPieces() === 0;
     }
 
     public function secondWins(): bool
     {
-        return $this->piecesPerPlayer <= $this->secondBoard()->count();
+        return $this->secondRemainingPieces() === 0;
     }
 
     public function isFirstTurn(): bool

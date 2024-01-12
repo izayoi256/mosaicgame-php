@@ -26,4 +26,11 @@ final class IntegerOneOnOneGameTest extends OneOnOneGameTest
     {
         return IntegerMove::fromOffset($offset);
     }
+
+    public function testPiecesPerPlayer()
+    {
+        $this->assertSame(7, static::createGame(3)->piecesPerPlayer());
+        $this->assertSame(15, static::createGame(4)->piecesPerPlayer());
+        $this->assertSame(27, static::createGame(5)->piecesPerPlayer());
+    }
 }
